@@ -13,15 +13,10 @@ declare(strict_types=1);
 namespace Mine\Constants\Laboratory;
 
 use Hyperf\Constants\AbstractConstants;
-use Hyperf\Constants\Annotation\Constants;
 
 /**
  * Class ChatRedisKey
  * 聊天系统Redis项关键
- * @Constants
- * @package App\Constants
- * @Author YiYuan-Lin
- * @Date: 2021/3/12
  */
 class ChatRedisKey extends AbstractConstants
 {

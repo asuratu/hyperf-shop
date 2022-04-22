@@ -18,11 +18,11 @@ use App\System\Model\SystemUser;
 use App\System\Service\SystemUserService;
 use Mine\Exception\TokenException;
 use Mine\MineRequest;
-use Phper666\JWTAuth\JWT;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use Throwable;
+use Xmo\JWTAuth\JWT;
 
 class LoginUser
 {

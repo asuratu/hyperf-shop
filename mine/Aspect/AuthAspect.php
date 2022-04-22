@@ -27,7 +27,6 @@ use Mine\Helper\LoginUser;
 #[Aspect]
 class AuthAspect extends AbstractAspect
 {
-
     public $annotations = [
         Auth::class
     ];

@@ -13,15 +13,10 @@ declare(strict_types=1);
 namespace Mine\Constants\Laboratory;
 
 use Hyperf\Constants\AbstractConstants;
-use Hyperf\Constants\Annotation\Constants;
 
 /**
  * 组消息事件枚举
  * Class GroupEvent
- * @Constants
- * @package App\Constants\Laboratory
- * @Author YiYuan-Lin
- * @Date: 2021/5/8
  */
 class GroupEvent extends AbstractConstants
 {

@@ -13,15 +13,10 @@ declare(strict_types=1);
 namespace Mine\Constants\Laboratory;
 
 use Hyperf\Constants\AbstractConstants;
-use Hyperf\Constants\Annotation\Constants;
 
 /**
  * Class WsMessage
  * 聊天系统相关枚举
- * @Constants
- * @package App\Constants
- * @Author YiYuan-Lin
- * @Date: 2021/3/12
  */
 class WsMessage extends AbstractConstants
 {

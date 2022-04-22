@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Mine\Helper;
 
-use Phper666\JWTAuth\JWT;
 use Psr\SimpleCache\InvalidArgumentException;
 use Throwable;
+use Xmo\JWTAuth\JWT;
 
 class AppVerify
 {

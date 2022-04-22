@@ -13,15 +13,10 @@ declare(strict_types=1);
 namespace Mine\Constants;
 
 use Hyperf\Constants\AbstractConstants;
-use Hyperf\Constants\Annotation\Constants;
 
 /**
  * Class StatusCode
  * 错误码枚举类
- * @Constants
- * @package App\Constants
- * @Author YiYuan-Lin
- * @Date: 2020/9/18
  * 自定义业务代码规范如下：
  * 默认常用的HTTP状态码
  * 接口相关，10001……
