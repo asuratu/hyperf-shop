@@ -11,7 +11,6 @@
 
 namespace Mine\Helper;
 
-
 class MineCode
 {
     public const TOKEN_EXPIRED = 1001;      // TOKEN过期、不存在

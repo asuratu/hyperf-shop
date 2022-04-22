@@ -10,10 +10,12 @@
  */
 
 declare(strict_types=1);
+
 namespace Mine\Helper;
 
-use Xmo\JWTAuth\JWT;
+use Phper666\JWTAuth\JWT;
 use Psr\SimpleCache\InvalidArgumentException;
+use Throwable;
 
 class AppVerify
 {
@@ -29,7 +31,7 @@ class AppVerify
      */
     public function __construct(string $scene = 'api')
     {
-        /* @var JWT $this->jwt */
+        /* @var JWT $this- >jwt */
         $this->jwt = make(JWT::class)->setScene($scene);
     }
 
@@ -40,13 +42,13 @@ class AppVerify
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function check(?String $token = null, string $scene = 'api'): bool
+    public function check(?string $token = null, string $scene = 'api'): bool
     {
         try {
             if ($this->jwt->checkToken($token, $scene, true, true, true)) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return false;
         }
 
@@ -77,7 +79,7 @@ class AppVerify
      */
     public function getId(): string
     {
-        return (string) $this->jwt->getParserData()['id'];
+        return (string)$this->jwt->getParserData()['id'];
     }
 
     /**
@@ -86,7 +88,7 @@ class AppVerify
      */
     public function getAppId(): string
     {
-        return (string) $this->jwt->getParserData()['app_id'];
+        return (string)$this->jwt->getParserData()['app_id'];
     }
 
     /**
