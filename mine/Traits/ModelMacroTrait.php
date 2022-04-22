@@ -75,7 +75,7 @@ trait ModelMacroTrait
                     if (empty($this->userIds)) {
                         return $this->builder;
                     } else {
-                        $this->userIds[] = $this->userid;
+                        array_push($this->userIds, $this->userid);
                         return $this->builder->whereIn('created_by', array_unique($this->userIds));
                     }
                 }
