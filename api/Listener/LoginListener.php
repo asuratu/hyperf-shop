@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\System\Listener;
+namespace Api\Listener;
 
-use App\System\Model\SystemUser;
+use App\Shop\Model\ShopUsers;
 use App\System\Service\SystemLoginLogService;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
-use Mine\Event\UserLoginAfter;
+use Mine\Event\ApiUserLoginAfter;
 use Mine\Helper\Str;
 use Mine\MineRequest;
 use Psr\Container\ContainerExceptionInterface;
@@ -23,12 +23,12 @@ class LoginListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            UserLoginAfter::class
+            ApiUserLoginAfter::class
         ];
     }
 
     /**
-     * @param UserLoginAfter $event
+     * @param ApiUserLoginAfter $event
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -48,7 +48,8 @@ class LoginListener implements ListenerInterface
             'browser' => $this->browser($agent),
             'status' => !$event->loginStatus,
             'message' => $event->message,
-            'login_time' => date('Y-m-d H:i:s')
+            'login_time' => date('Y-m-d H:i:s'),
+            'type' => 1,
         ]);
 
         $key = sprintf("%sToken:%s", config('cache.default.prefix'), $event->userinfo['id']);
@@ -60,7 +61,7 @@ class LoginListener implements ListenerInterface
             $event->userinfo['login_ip'] = $ip;
             $event->userinfo['login_time'] = date('Y-m-d H:i:s');
 
-            SystemUser::query()->where('id', $event->userinfo['id'])->update([
+            ShopUsers::query()->where('id', $event->userinfo['id'])->update([
                 'login_ip' => $ip,
                 'login_time' => date('Y-m-d H:i:s'),
             ]);

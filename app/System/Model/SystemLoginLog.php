@@ -1,9 +1,11 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+
 namespace App\System\Model;
 
 use Mine\MineModel;
+
 /**
  * @property int $id 主键
  * @property string $username 用户名
@@ -31,7 +33,7 @@ class SystemLoginLog extends MineModel
      *
      * @var array
      */
-    protected $fillable = ['id', 'username', 'ip', 'ip_location', 'os', 'browser', 'status', 'message', 'login_time', 'remark'];
+    protected $fillable = ['id', 'username', 'ip', 'ip_location', 'os', 'browser', 'status', 'message', 'login_time', 'remark', 'type'];
     /**
      * The attributes that should be cast to native types.
      *

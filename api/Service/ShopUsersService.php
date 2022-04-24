@@ -38,7 +38,7 @@ class ShopUsersService extends AbstractService
         $this->mapper = $mapper;
     }
 
-    public function registerByAccount($data): string
+    public function registerByAccount($data): array
     {
         if ($this->mapper->existsByUsername($data['username'])) {
             throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);
@@ -57,7 +57,10 @@ class ShopUsersService extends AbstractService
         }
         $userLoginAfter->token = $token;
         $this->evDispatcher->dispatch($userLoginAfter);
-        return $token;
+        return [
+            'userinfo' => $userinfo,
+            'token' => $token,
+        ];
     }
 
     /**

@@ -6,7 +6,6 @@ namespace Api\Controller;
 
 use Api\Request\Users\ShopUsersRegisterRequest;
 use Api\Service\ShopUsersService;
-use Carbon\Carbon;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\PostMapping;
@@ -34,13 +33,7 @@ class AuthController extends BaseController
     #[PostMapping("register")]
     public function register(ShopUsersRegisterRequest $request): ResponseInterface
     {
-        $data = $request->inputs(['username', 'password', 'password_confirmation']);
-        $data['login_ip'] = getClientIp($request);
-        $data['login_time'] = Carbon::now();
-
-        dump($data);
-
-        return $this->success(['id' => $this->service->registerByAccount($data)]);
+        return $this->success($this->service->registerByAccount($request->inputs(['username', 'password', 'password_confirmation'])));
     }
 
 }

@@ -21,34 +21,33 @@ class TableStructVersion050 extends Migration
     public function up(): void
     {
         Schema::table('system_queue_message', function (Blueprint $table) {
-
             $table->index('content_type');
             $table->index('send_by');
 
-            if (! Schema::hasColumn('system_queue_message','title')) {
+            if (! Schema::hasColumn('system_queue_message', 'title')) {
                 $table->addColumn('string', 'title', ['length' => 255])
                     ->comment('消息标题')
                     ->after('content_type')
                     ->nullable();
             }
 
-            if (Schema::hasColumn('system_queue_message','content_id')) {
+            if (Schema::hasColumn('system_queue_message', 'content_id')) {
                 $table->dropColumn(['content_id']);
             }
 
-            if (Schema::hasColumn('system_queue_message','send_status')) {
+            if (Schema::hasColumn('system_queue_message', 'send_status')) {
                 $table->dropColumn(['send_status']);
             }
 
-            if (Schema::hasColumn('system_queue_message','read_status')) {
+            if (Schema::hasColumn('system_queue_message', 'read_status')) {
                 $table->dropColumn(['read_status']);
             }
 
-            if (Schema::hasColumn('system_queue_message','receive_by')) {
+            if (Schema::hasColumn('system_queue_message', 'receive_by')) {
                 $table->dropColumn(['receive_by']);
             }
 
-            if (Schema::hasColumn('system_queue_message','deleted_at')) {
+            if (Schema::hasColumn('system_queue_message', 'deleted_at')) {
                 $table->dropColumn(['deleted_at']);
             }
         });
