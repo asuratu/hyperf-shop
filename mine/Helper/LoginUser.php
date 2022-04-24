@@ -10,6 +10,7 @@
  */
 
 declare(strict_types=1);
+
 namespace Mine\Helper;
 
 use App\System\Model\SystemRole;
@@ -17,8 +18,11 @@ use App\System\Model\SystemUser;
 use App\System\Service\SystemUserService;
 use Mine\Exception\TokenException;
 use Mine\MineRequest;
-use Xmo\JWTAuth\JWT;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\SimpleCache\InvalidArgumentException;
+use Throwable;
+use Xmo\JWTAuth\JWT;
 
 class LoginUser
 {
@@ -32,14 +36,13 @@ class LoginUser
      */
     protected MineRequest $request;
 
-
     /**
      * LoginUser constructor.
      * @param string $scene 场景，默认为default
      */
     public function __construct(string $scene = 'default')
     {
-        /* @var JWT $this->jwt */
+        /* @var JWT $this- >jwt */
         $this->jwt = make(JWT::class)->setScene($scene);
     }
 
@@ -48,8 +51,8 @@ class LoginUser
      * @param string|null $token
      * @param string $scene
      * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function check(?string $token = null, string $scene = 'default'): bool
     {
@@ -59,7 +62,7 @@ class LoginUser
             }
         } catch (InvalidArgumentException $e) {
             throw new TokenException(t('jwt.no_token'));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new TokenException(t('jwt.no_login'));
         }
 
@@ -86,15 +89,6 @@ class LoginUser
     }
 
     /**
-     * 获取当前登录用户ID
-     * @return string
-     */
-    public function getId(): string
-    {
-        return (string) $this->jwt->getParserData()['id'];
-    }
-
-    /**
      * 获取当前登录用户名
      * @return string
      */
@@ -111,6 +105,15 @@ class LoginUser
     public function getUserRole(array $columns = ['id', 'name', 'code']): array
     {
         return SystemUser::find($this->getId(), ['id'])->roles()->get($columns)->toArray();
+    }
+
+    /**
+     * 获取当前登录用户ID
+     * @return string
+     */
+    public function getId(): string
+    {
+        return (string)$this->jwt->getParserData()['id'];
     }
 
     /**
@@ -153,8 +156,8 @@ class LoginUser
     /**
      * 是否为管理员角色
      * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function isAdminRole(): bool
     {
