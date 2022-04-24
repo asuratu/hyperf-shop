@@ -1,11 +1,13 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\System\Service;
 
 use App\Setting\Service\SettingConfigService;
 use App\System\Mapper\SystemUserMapper;
 use App\System\Model\SystemUser;
+use Exception;
 use Hyperf\Cache\Annotation\Cacheable;
 use Hyperf\Cache\Annotation\CacheEvict;
 use Hyperf\Contract\ContainerInterface;
@@ -13,7 +15,7 @@ use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Redis\Redis;
 use Mine\Abstracts\AbstractService;
-use Mine\Event\UserLoginAfter;
+use Mine\Event\ApiUserLoginAfter;
 use Mine\Event\UserLoginBefore;
 use Mine\Event\UserLogout;
 use Mine\Exception\CaptchaException;
@@ -21,8 +23,11 @@ use Mine\Exception\MineException;
 use Mine\Exception\NormalStatusException;
 use Mine\Exception\UserBanException;
 use Mine\Helper\MineCaptcha;
-use Mine\MineRequest;
 use Mine\Helper\MineCode;
+use Mine\Helper\Str;
+use Mine\MineRequest;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -35,36 +40,31 @@ use Psr\SimpleCache\InvalidArgumentException;
 class SystemUserService extends AbstractService
 {
     /**
+     * @var SystemUserMapper
+     */
+    public $mapper;
+    /**
      * @var EventDispatcherInterface
      */
     #[InJect]
     protected EventDispatcherInterface $evDispatcher;
-
     /**
      * @var MineRequest
      */
     #[Inject]
     protected MineRequest $request;
-
     /**
      * @var ContainerInterface
      */
     protected ContainerInterface $container;
-
     /**
      * @var SystemMenuService
      */
     protected SystemMenuService $sysMenuService;
-
     /**
      * @var SystemRoleService
      */
     protected SystemRoleService $sysRoleService;
-
-    /**
-     * @var SystemUserMapper
-     */
-    public $mapper;
 
     /**
      * SystemUserService constructor.
@@ -75,11 +75,10 @@ class SystemUserService extends AbstractService
      */
     public function __construct(
         ContainerInterface $container,
-        SystemUserMapper $mapper,
-        SystemMenuService $systemMenuService,
-        SystemRoleService $systemRoleService
-    )
-    {
+        SystemUserMapper   $mapper,
+        SystemMenuService  $systemMenuService,
+        SystemRoleService  $systemRoleService
+    ) {
         $this->mapper = $mapper;
         $this->sysMenuService = $systemMenuService;
         $this->sysRoleService = $systemRoleService;
@@ -90,8 +89,8 @@ class SystemUserService extends AbstractService
      * 获取验证码
      * @return string
      * @throws InvalidArgumentException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @noinspection PhpFullyQualifiedNameUsageInspection
      */
     public function getCaptcha(): string
@@ -99,30 +98,9 @@ class SystemUserService extends AbstractService
         $cache = $this->container->get(CacheInterface::class);
         $captcha = new MineCaptcha();
         $info = $captcha->getCaptchaInfo();
-        $key = $this->request->ip() .'-'. \Mine\Helper\Str::lower($info['code']);
+        $key = $this->request->ip() . '-' . Str::lower($info['code']);
         $cache->set(sprintf('captcha:%s', $key), $info['code'], 60);
         return $info['image'];
-    }
-
-    /**
-     * 检查用户提交的验证码
-     * @param String $code
-     * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Exception
-     */
-    public function checkCaptcha(String $code): bool
-    {
-        try {
-            $cache = $this->container->get(CacheInterface::class);
-            $key = 'captcha:' . $this->request->ip() .'-'. \Mine\Helper\Str::lower($code);
-            $result = (\Mine\Helper\Str::lower($code) == $cache->get($key));
-            $cache->delete($key);
-            return $result;
-        } catch (InvalidArgumentException $e) {
-            throw new \Exception;
-        }
     }
 
     /**
@@ -130,8 +108,8 @@ class SystemUserService extends AbstractService
      * @param array $data
      * @return string|null
      * @throws InvalidArgumentException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function login(array $data): ?string
     {
@@ -140,10 +118,10 @@ class SystemUserService extends AbstractService
             $userinfo = $this->mapper->checkUserByUsername($data['username'])->toArray();
             $password = $userinfo['password'];
             unset($userinfo['password']);
-            $userLoginAfter = new UserLoginAfter($userinfo);
+            $userLoginAfter = new ApiUserLoginAfter($userinfo);
             $webLoginVerify = container()->get(SettingConfigService::class)->getConfigByKey('web_login_verify');
             if (isset($webLoginVerify['value']) && $webLoginVerify['value'] === '1') {
-                if (! $this->checkCaptcha($data['code'])) {
+                if (!$this->checkCaptcha($data['code'])) {
                     $userLoginAfter->message = t('jwt.code_error');
                     $userLoginAfter->loginStatus = false;
                     $this->evDispatcher->dispatch($userLoginAfter);
@@ -173,7 +151,7 @@ class SystemUserService extends AbstractService
                 $this->evDispatcher->dispatch($userLoginAfter);
                 throw new NormalStatusException;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($e instanceof ModelNotFoundException) {
                 throw new NormalStatusException(t('jwt.username_error'), MineCode::NO_DATA);
             }
@@ -192,6 +170,27 @@ class SystemUserService extends AbstractService
     }
 
     /**
+     * 检查用户提交的验证码
+     * @param String $code
+     * @return bool
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
+    public function checkCaptcha(string $code): bool
+    {
+        try {
+            $cache = $this->container->get(CacheInterface::class);
+            $key = 'captcha:' . $this->request->ip() . '-' . Str::lower($code);
+            $result = (Str::lower($code) == $cache->get($key));
+            $cache->delete($key);
+            return $result;
+        } catch (InvalidArgumentException $e) {
+            throw new Exception;
+        }
+    }
+
+    /**
      * 用户退出
      * @throws InvalidArgumentException
      */
@@ -205,13 +204,13 @@ class SystemUserService extends AbstractService
     /**
      * 获取用户信息
      * @return array
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function getInfo(): array
     {
-        if ( ($uid = user()->getId()) ) {
-            return $this->getCacheInfo((int) $uid);
+        if (($uid = user()->getId())) {
+            return $this->getCacheInfo((int)$uid);
         }
         throw new MineException(t('system.unable_get_userinfo'), 500);
     }
@@ -263,8 +262,8 @@ class SystemUserService extends AbstractService
      * 新增用户
      * @param array $data
      * @return int
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function save(array $data): int
     {
@@ -273,20 +272,6 @@ class SystemUserService extends AbstractService
         } else {
             return $this->mapper->save($this->handleData($data));
         }
-    }
-
-    /**
-     * 更新用户信息
-     * @param int $id
-     * @param array $data
-     * @return bool
-     */
-    #[CacheEvict(prefix: "loginInfo", value: "userId_#{id}")]
-    public function update(int $id, array $data): bool
-    {
-        if (isset($data['username'])) unset($data['username']);
-        if (isset($data['password'])) unset($data['password']);
-        return $this->mapper->update($id, $this->handleData($data));
     }
 
     /**
@@ -312,21 +297,39 @@ class SystemUserService extends AbstractService
     }
 
     /**
+     * 更新用户信息
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    #[CacheEvict(prefix: "loginInfo", value: "userId_#{id}")]
+    public function update(int $id, array $data): bool
+    {
+        if (isset($data['username'])) {
+            unset($data['username']);
+        }
+        if (isset($data['password'])) {
+            unset($data['password']);
+        }
+        return $this->mapper->update($id, $this->handleData($data));
+    }
+
+    /**
      * 获取在线用户
      * @param array $params
      * @return array
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function getOnlineUserPageList(array $params = []): array
     {
         $redis = redis();
-        $key   = sprintf('%sToken:*', config('cache.default.prefix'));
+        $key = sprintf('%sToken:*', config('cache.default.prefix'));
         $users = $redis->keys($key);
         $userIds = [];
 
         foreach ($users as $user) {
-            if ( preg_match("/{$key}(\d+)$/", $user, $match) && isset($match[1])) {
+            if (preg_match("/{$key}(\d+)$/", $user, $match) && isset($match[1])) {
                 $userIds[] = $match[1];
             }
         }
@@ -335,7 +338,7 @@ class SystemUserService extends AbstractService
             return [];
         }
 
-        return $this->getPageList(array_merge([ 'showDept' => 1, 'userIds'  => $userIds ], $params));
+        return $this->getPageList(array_merge(['showDept' => 1, 'userIds' => $userIds], $params));
     }
 
     /**
@@ -381,8 +384,8 @@ class SystemUserService extends AbstractService
      * @param string $id
      * @return bool
      * @throws InvalidArgumentException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function kickUser(string $id): bool
     {
@@ -407,11 +410,28 @@ class SystemUserService extends AbstractService
     }
 
     /**
+     * 设置用户首页
+     * @param array $params
+     * @return bool
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function setHomePage(array $params): bool
+    {
+        $res = ($this->mapper->getModel())::query()
+                ->where('id', $params['id'])
+                ->update(['dashboard' => $params['dashboard']]) > 0;
+
+        $this->clearCache((string)$params['id']);
+        return $res;
+    }
+
+    /**
      * 清除用户缓存
      * @param string $id
      * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function clearCache(string $id): bool
     {
@@ -421,28 +441,11 @@ class SystemUserService extends AbstractService
     }
 
     /**
-     * 设置用户首页
-     * @param array $params
-     * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     */
-    public function setHomePage(array $params): bool
-    {
-        $res = ($this->mapper->getModel())::query()
-            ->where('id', $params['id'])
-            ->update(['dashboard' => $params['dashboard']]) > 0;
-
-        $this->clearCache((string) $params['id']);
-        return $res;
-    }
-
-    /**
      * 用户更新个人资料
      * @param array $params
      * @return bool
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function updateInfo(array $params): bool
     {
@@ -456,7 +459,7 @@ class SystemUserService extends AbstractService
             $model[$key] = $param;
         }
 
-        $this->clearCache((string) $model['id']);
+        $this->clearCache((string)$model['id']);
         return $model->save();
     }
 
@@ -467,6 +470,6 @@ class SystemUserService extends AbstractService
      */
     public function modifyPassword(array $params): bool
     {
-        return $this->mapper->initUserPassword((int) user()->getId(), $params['newPassword']);
+        return $this->mapper->initUserPassword((int)user()->getId(), $params['newPassword']);
     }
 }

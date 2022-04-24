@@ -29,7 +29,6 @@ if (! function_exists('container')) {
     {
         return ApplicationContext::getContainer();
     }
-
 }
 
 if (! function_exists('redis')) {
@@ -44,7 +43,6 @@ if (! function_exists('redis')) {
     {
         return container()->get(\Hyperf\Redis\Redis::class);
     }
-
 }
 
 if (! function_exists('console')) {
@@ -59,7 +57,6 @@ if (! function_exists('console')) {
     {
         return container()->get(StdoutLoggerInterface::class);
     }
-
 }
 
 if (! function_exists('logger')) {
@@ -75,7 +72,6 @@ if (! function_exists('logger')) {
     {
         return container()->get(LoggerFactory::class)->get($name);
     }
-
 }
 
 if (! function_exists('user')) {
@@ -120,7 +116,7 @@ if (! function_exists('t')) {
     function t(string $key, array $replace = []): string
     {
         $acceptLanguage = container()->get(\Mine\MineRequest::class)->getHeaderLine('accept-language');
-        $language = !empty($acceptLanguage) ? explode(',',$acceptLanguage)[0] : 'zh_CN';
+        $language = !empty($acceptLanguage) ? explode(',', $acceptLanguage)[0] : 'zh_CN';
         return __($key, $replace, $language);
     }
 }

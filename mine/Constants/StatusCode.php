@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Mine\Constants;
 
 use Hyperf\Constants\AbstractConstants;
+use Hyperf\Constants\Annotation\Constants;
 
 /**
  * Class StatusCode
@@ -22,6 +23,8 @@ use Hyperf\Constants\AbstractConstants;
  * 接口相关，10001……
  * 用户相关，1001……
  * 业务相关，2001……
+ *
+ * @Constants
  */
 class StatusCode extends AbstractConstants
 {

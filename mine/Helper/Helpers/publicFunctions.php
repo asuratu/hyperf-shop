@@ -13,14 +13,13 @@ if (!function_exists('checkFileExists')) {
      * @param $file
      * @return bool
      */
-    function checkFileExists($file)
+    function checkFileExists($file): bool
     {
         // 远程文件
         if (strtolower(substr($file, 0, 5)) == 'https') {
             // 远程文件
             $header = get_headers($file, true);
             return isset($header[0]) && (strpos($header[0], '200') || strpos($header[0], '304'));
-
         } elseif (strtolower(substr($file, 0, 4)) == 'http') {
             // 远程文件
             $header = get_headers($file, true);
@@ -30,7 +29,6 @@ if (!function_exists('checkFileExists')) {
             return file_exists($file);
         }
     }
-
 }
 
 if (!function_exists('getRandStr')) {
@@ -74,7 +72,6 @@ if (!function_exists('byteConversion')) {
         $p = 0;
         $format = 'bytes';
         if ($num > 0 && $num < 1024) {
-            $p = 0;
             return number_format($num) . ' ' . $format;
         }
         if ($num >= 1024 && $num < pow(1024, 2)) {
@@ -104,7 +101,7 @@ if (!function_exists('getClientIp')) {
      *
      * @return mixed|string
      */
-    function getClientIp(RequestInterface $request)
+    function getClientIp(RequestInterface $request): mixed
     {
         $res = $request->getServerParams();
         if (isset($res['http_client_ip'])) {
@@ -129,7 +126,9 @@ if (!function_exists('objToArray')) {
      */
     function objToArray($data = '')
     {
-        if (empty($data)) return [];
+        if (empty($data)) {
+            return [];
+        }
         return json_decode(json_encode($data), true);
     }
 }
@@ -150,7 +149,6 @@ if (!function_exists('p')) {
         }
         print_r($array);
         echo '</pre>';
-
     }
 }
 

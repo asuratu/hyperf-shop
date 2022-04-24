@@ -3,7 +3,6 @@
 declare(strict_types=1);
 namespace App\Setting\Service;
 
-
 use App\Setting\Mapper\SettingConfigMapper;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Redis\Redis;
@@ -84,7 +83,9 @@ class SettingConfigService extends AbstractService
      */
     public function getConfigByGroup(string $groupName): array
     {
-        if (empty($groupName)) return [];
+        if (empty($groupName)) {
+            return [];
+        }
         $cacheKey = $this->getCacheGroupName() . $groupName;
         if ($data = $this->redis->get($cacheKey)) {
             return unserialize($data);
@@ -105,7 +106,9 @@ class SettingConfigService extends AbstractService
      */
     public function getConfigByKey(string $key): array
     {
-        if (empty($key)) return [];
+        if (empty($key)) {
+            return [];
+        }
         $cacheKey = $this->getCacheName() . $key;
         if (($data = $this->redis->get($cacheKey))) {
             return unserialize($data);
@@ -131,7 +134,7 @@ class SettingConfigService extends AbstractService
             $this->redis->del($item);
         }
 
-        foreach($keyCache as $item) {
+        foreach ($keyCache as $item) {
             $this->redis->del($item);
         }
 
@@ -193,6 +196,4 @@ class SettingConfigService extends AbstractService
     {
         $this->cacheName = $cacheName;
     }
-
-
 }

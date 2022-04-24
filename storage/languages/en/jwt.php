@@ -17,6 +17,7 @@ return [
     'validate_fail' => 'Token verification failed. It may be expired or in the blacklist',
     'no_token' => 'The token is illegal or does not exist',
 
+    'register_success' => 'Register successful',
     'login_success' => 'Login successful',
     'username_error' => 'User does not exist',
     'password_error' => 'The password is incorrect',

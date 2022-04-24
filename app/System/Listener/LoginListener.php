@@ -1,15 +1,18 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\System\Listener;
 
 use App\System\Model\SystemUser;
 use App\System\Service\SystemLoginLogService;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
-use Mine\Event\UserLoginAfter;
+use Mine\Event\ApiUserLoginAfter;
 use Mine\Helper\Str;
 use Mine\MineRequest;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * Class LoginListener
@@ -20,14 +23,14 @@ class LoginListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            UserLoginAfter::class
+            ApiUserLoginAfter::class
         ];
     }
 
     /**
-     * @param UserLoginAfter $event
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @param ApiUserLoginAfter $event
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function process(object $event)
     {
@@ -51,7 +54,7 @@ class LoginListener implements ListenerInterface
         $key = sprintf("%sToken:%s", config('cache.default.prefix'), $event->userinfo['id']);
 
         $redis->exists($key) && $redis->del($key);
-        ($event->loginStatus && $event->token) && $redis->set( $key, $event->token, config('jwt.ttl') );
+        ($event->loginStatus && $event->token) && $redis->set($key, $event->token, config('jwt.ttl'));
 
         if ($event->loginStatus) {
             $event->userinfo['login_ip'] = $ip;
@@ -67,8 +70,8 @@ class LoginListener implements ListenerInterface
     /**
      * @param $agent
      * @return string
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function os($agent): string
     {
@@ -78,10 +81,10 @@ class LoginListener implements ListenerInterface
         if (false !== stripos($agent, 'win') && preg_match('/nt 6.2/i', $agent)) {
             return 'Windows 8';
         }
-        if(false !== stripos($agent, 'win') && preg_match('/nt 10.0/i', $agent)) {
+        if (false !== stripos($agent, 'win') && preg_match('/nt 10.0/i', $agent)) {
             return 'Windows 10';
         }
-        if(false !== stripos($agent, 'win') && preg_match('/nt 11.0/i', $agent)) {
+        if (false !== stripos($agent, 'win') && preg_match('/nt 11.0/i', $agent)) {
             return 'Windows 11';
         }
         if (false !== stripos($agent, 'win') && preg_match('/nt 5.1/i', $agent)) {
@@ -99,8 +102,8 @@ class LoginListener implements ListenerInterface
     /**
      * @param $agent
      * @return string
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function browser($agent): string
     {
