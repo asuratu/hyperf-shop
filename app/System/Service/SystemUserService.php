@@ -16,8 +16,8 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\Redis\Redis;
 use Mine\Abstracts\AbstractService;
 use Mine\Event\ApiUserLoginAfter;
+use Mine\Event\ApiUserLogout;
 use Mine\Event\UserLoginBefore;
-use Mine\Event\UserLogout;
 use Mine\Exception\CaptchaException;
 use Mine\Exception\MineException;
 use Mine\Exception\NormalStatusException;
@@ -197,7 +197,7 @@ class SystemUserService extends AbstractService
     public function logout()
     {
         $user = user();
-        $this->evDispatcher->dispatch(new UserLogout($user->getUserInfo()));
+        $this->evDispatcher->dispatch(new ApiUserLogout($user->getUserInfo()));
         $user->getJwt()->logout();
     }
 
