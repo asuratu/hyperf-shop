@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Mine\Event;
 
-class gitApiUserLogout
+class ApiUserLogout
 {
     public array $userinfo;
 
