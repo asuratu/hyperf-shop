@@ -10,6 +10,7 @@
  */
 
 declare(strict_types=1);
+
 namespace Mine\Middlewares;
 
 use App\Setting\Service\ModuleService;
@@ -17,6 +18,8 @@ use Hyperf\Di\Annotation\AnnotationCollector;
 use Hyperf\Di\Annotation\Inject;
 use Mine\Exception\NormalStatusException;
 use Mine\Helper\Str;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -38,15 +41,14 @@ class CheckModuleMiddleware implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $uri = $request->getUri();
 
         if ($uri->getPath() !== '/favicon.ico' && mb_substr_count($uri->getPath(), '/') > 1) {
-
             list($empty, $moduleName, $controllerName) = explode('/', $uri->getPath());
 
             $path = $moduleName . '/' . $controllerName;
@@ -57,8 +59,10 @@ class CheckModuleMiddleware implements MiddlewareInterface
 
             $annotation = AnnotationCollector::getClassesByAnnotation('Hyperf\HttpServer\Annotation\Controller');
 
-            foreach ($annotation as $item) if ( $item->server === 'http' && $item->prefix === $path && !$moduleEnabled ) {
-                throw new NormalStatusException('模块被禁用', 500);
+            foreach ($annotation as $item) {
+                if ($item->server === 'http' && $item->prefix === $path && !$moduleEnabled) {
+                    throw new NormalStatusException('模块被禁用', 500);
+                }
             }
         }
 

@@ -53,7 +53,6 @@
         "zoujingli/ip2region": "^1.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.7",
         "hyperf/devtool": "~2.2.0",
         "hyperf/ide-helper": "2.2.*",
         "hyperf/testing": "~2.2.0",
