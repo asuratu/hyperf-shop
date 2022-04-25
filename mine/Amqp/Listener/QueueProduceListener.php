@@ -7,20 +7,24 @@
  * Time: 3:13 下午
  */
 declare(strict_types=1);
+
 namespace Mine\Amqp\Listener;
 
 use App\System\Mapper\SystemQueueMessageMapper;
 use App\System\Model\SystemQueueLog;
 use App\System\Queue\Producer\MessageProducer;
 use App\System\Service\SystemQueueLogService;
+use Exception;
 use Hyperf\Context\Context;
+use Hyperf\Event\Annotation\Listener;
+use Hyperf\Event\Contract\ListenerInterface;
 use Mine\Amqp\Event\AfterProduce;
 use Mine\Amqp\Event\BeforeProduce;
 use Mine\Amqp\Event\FailToProduce;
 use Mine\Amqp\Event\ProduceEvent;
 use Mine\Amqp\Event\WaitTimeout;
-use Hyperf\Event\Contract\ListenerInterface;
-use Hyperf\Event\Annotation\Listener;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * 生产队列监听
@@ -46,17 +50,22 @@ class QueueProduceListener implements ListenerInterface
 
     /**
      * @param object $event
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Exception
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
      */
     public function process(object $event)
     {
         $this->setId(snowflake_id());
         $this->service = container()->get(SystemQueueLogService::class);
         $class = get_class($event);
-        $func = lcfirst(trim(strrchr($class, '\\'),'\\'));
+        $func = lcfirst(trim(strrchr($class, '\\'), '\\'));
         $this->$func($event);
+    }
+
+    public function setId(string $uuid): void
+    {
+        Context::set('id', $uuid);
     }
 
     /**
@@ -89,6 +98,11 @@ class QueueProduceListener implements ListenerInterface
         ]);
     }
 
+    public function getId(): string
+    {
+        return Context::get('id', '');
+    }
+
     /**
      * Description:生产中
      * User:mike, x.mo
@@ -119,19 +133,9 @@ class QueueProduceListener implements ListenerInterface
      */
     public function failToProduce(object $event): void
     {
-        $this->service->update((int) $this->getId(), [
+        $this->service->update((int)$this->getId(), [
             'produce_status' => SystemQueueLog::PRODUCE_STATUS_FAIL,
             'log_content' => $event->throwable ?: $event->throwable->getMessage()
         ]);
-    }
-
-    public function setId(string $uuid): void
-    {
-        Context::set('id', $uuid);
-    }
-
-    public function getId(): string
-    {
-        return Context::get('id', '');
     }
 }

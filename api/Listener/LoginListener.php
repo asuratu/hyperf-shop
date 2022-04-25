@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Api\Listener;
 
-use App\Shop\Model\ShopUsers;
+use App\Shop\Model\ShopUser;
 use App\System\Service\SystemLoginLogService;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
@@ -61,7 +61,7 @@ class LoginListener implements ListenerInterface
             $event->userinfo['login_ip'] = $ip;
             $event->userinfo['login_time'] = date('Y-m-d H:i:s');
 
-            ShopUsers::query()->where('id', $event->userinfo['id'])->update([
+            ShopUser::query()->where('id', $event->userinfo['id'])->update([
                 'login_ip' => $ip,
                 'login_time' => date('Y-m-d H:i:s'),
             ]);

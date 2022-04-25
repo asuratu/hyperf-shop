@@ -1,9 +1,10 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
+
 namespace App\Shop\Mapper;
 
-use App\Shop\Model\ShopUsers;
+use App\Shop\Model\ShopUser;
 use Hyperf\Database\Model\Builder;
 use Mine\Abstracts\AbstractMapper;
 
@@ -13,13 +14,13 @@ use Mine\Abstracts\AbstractMapper;
 class ShopUsersMapper extends AbstractMapper
 {
     /**
-     * @var ShopUsers
+     * @var ShopUser
      */
     public $model;
 
     public function assignModel()
     {
-        $this->model = ShopUsers::class;
+        $this->model = ShopUser::class;
     }
 
     /**
@@ -30,7 +31,7 @@ class ShopUsersMapper extends AbstractMapper
      */
     public function handleSearch(Builder $query, array $params): Builder
     {
-        
+
         // 密码
         if (isset($params['password']) && $params['password'] !== '') {
             $query->where('password', '=', $params['password']);

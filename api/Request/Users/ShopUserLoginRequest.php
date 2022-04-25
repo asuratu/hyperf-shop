@@ -5,9 +5,9 @@ namespace Api\Request\Users;
 use Hyperf\Validation\Request\FormRequest;
 
 /**
- * 用户账号密码注册验证数据类.
+ * 用户账号密码登录验证数据类.
  */
-class ShopUsersRegisterRequest extends FormRequest
+class ShopUserLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class ShopUsersRegisterRequest extends FormRequest
     {
         return [
             'username' => 'required|max:20',
-            'password' => 'required|min:6|confirmed',
+            'password' => 'required|min:6',
         ];
     }
 }

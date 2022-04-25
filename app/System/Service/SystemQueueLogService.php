@@ -74,7 +74,8 @@ class SystemQueueLogService extends AbstractService
             throw new NormalStatusException(t('system.queue_annotation_not_open'), 500);
         }
 
-        return $this->producer->produce(new $class($amqpQueueVo->getData()),
+        return $this->producer->produce(
+            new $class($amqpQueueVo->getData()),
             $amqpQueueVo->getIsConfirm(),
             $amqpQueueVo->getTimeout(),
             $amqpQueueVo->getDelayTime()
@@ -99,20 +100,20 @@ class SystemQueueLogService extends AbstractService
             throw new NormalStatusException(t('system.queue_annotation_not_open'), 500);
         }
 
-        if (empty ($message->getTitle())) {
+        if (empty($message->getTitle())) {
             throw new NormalStatusException(t('system.queue_missing_message_title'), 500);
         }
 
-        if (empty ($message->getContent())) {
+        if (empty($message->getContent())) {
             throw new NormalStatusException(t('system.queue_missing_message_content_type'), 500);
         }
 
-        if (empty ($message->getContentType())) {
+        if (empty($message->getContentType())) {
             throw new NormalStatusException(t('system.queue_missing_content'), 500);
         }
 
         if (empty($receiveUsers)) {
-            $receiveUsers = $this->userService->pluck(['status' => SystemUser::USER_NORMAL],'id');
+            $receiveUsers = $this->userService->pluck(['status' => SystemUser::USER_NORMAL], 'id');
         }
 
         $data = [

@@ -7,17 +7,20 @@
  * Time: 3:13 下午
  */
 declare(strict_types=1);
+
 namespace Mine\Amqp\Listener;
 
 use App\System\Model\SystemQueueLog;
 use App\System\Service\SystemQueueLogService;
+use Hyperf\Event\Annotation\Listener;
+use Hyperf\Event\Contract\ListenerInterface;
 use Mine\Amqp\Event\AfterConsume;
 use Mine\Amqp\Event\BeforeConsume;
 use Mine\Amqp\Event\ConsumeEvent;
 use Mine\Amqp\Event\FailToConsume;
 use Mine\Amqp\Event\WaitTimeout;
-use Hyperf\Event\Contract\ListenerInterface;
-use Hyperf\Event\Annotation\Listener;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * 消费队列监听
@@ -43,15 +46,15 @@ class QueueConsumeListener implements ListenerInterface
 
     /**
      * @param object $event
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function process(object $event)
     {
         $this->service = container()->get(SystemQueueLogService::class);
         if ($event->message) {
             $class = get_class($event);
-            $func = lcfirst(trim(strrchr($class, '\\'),'\\'));
+            $func = lcfirst(trim(strrchr($class, '\\'), '\\'));
             $this->$func($event);
         }
     }
@@ -100,9 +103,11 @@ class QueueConsumeListener implements ListenerInterface
     public function failToConsume(object $event)
     {
         $this->service->update(
-            (int)$event->data['queue_id'], [
-            'consume_status' => SystemQueueLog::CONSUME_STATUS_4,
-            'log_content' => $event->throwable ?: $event->throwable->getMessage()
-        ]);
+            (int)$event->data['queue_id'],
+            [
+                'consume_status' => SystemQueueLog::CONSUME_STATUS_4,
+                'log_content' => $event->throwable ?: $event->throwable->getMessage()
+            ]
+        );
     }
 }

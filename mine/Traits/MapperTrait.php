@@ -12,12 +12,17 @@
 namespace Mine\Traits;
 
 use App\System\Service\SystemDictDataService;
+use Closure;
 use Hyperf\Contract\LengthAwarePaginatorInterface;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
+use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Annotation\Transaction;
 use Mine\MineCollection;
 use Mine\MineModel;
+use PhpOffice\PhpSpreadsheet\Writer\Exception;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 trait MapperTrait
 {
@@ -35,61 +40,6 @@ trait MapperTrait
     public function getList(?array $params, bool $isScope = true): array
     {
         return $this->listQuerySetting($params, $isScope)->get()->toArray();
-    }
-
-    /**
-     * 获取列表数据（带分页）
-     * @param array|null $params
-     * @param bool $isScope
-     * @param string $pageName
-     * @return array
-     */
-    public function getPageList(?array $params, bool $isScope = true, string $pageName = 'page'): array
-    {
-        $paginate = $this->listQuerySetting($params, $isScope)->paginate(
-            $params['pageSize'] ?? $this->model::PAGE_SIZE, ['*'], $pageName, $params[$pageName] ?? 1
-        );
-        return $this->setPaginate($paginate);
-    }
-
-    /**
-     * 设置数据库分页
-     * @param LengthAwarePaginatorInterface $paginate
-     * @return array
-     */
-    public function setPaginate(LengthAwarePaginatorInterface $paginate): array
-    {
-        return [
-            'items' => $paginate->items(),
-            'pageInfo' => [
-                'total' => $paginate->total(),
-                'currentPage' => $paginate->currentPage(),
-                'totalPage' => $paginate->lastPage()
-            ]
-        ];
-    }
-
-    /**
-     * 获取树列表
-     * @param array|null $params
-     * @param bool $isScope
-     * @param string $id
-     * @param string $parentField
-     * @param string $children
-     * @return array
-     */
-    public function getTreeList(
-        ?array $params = null,
-        bool $isScope = true,
-        string $id = 'id',
-        string $parentField = 'parent_id',
-        string $children='children'
-    ): array
-    {
-        $params['_mainAdmin_tree'] = true;
-        $params['_mainAdmin_tree_pid'] = $parentField;
-        $data = $this->listQuerySetting($params, $isScope)->get();
-        return $data->toTree([], $data[0]->{$parentField} ?? 0, $id, $parentField, $children);
     }
 
     /**
@@ -111,6 +61,30 @@ trait MapperTrait
         $isScope && $query->userDataScope();
 
         return $this->handleSearch($query, $params);
+    }
+
+    /**
+     * 过滤查询字段不存在的属性
+     * @param array $fields
+     * @param bool $removePk
+     * @return array
+     */
+    protected function filterQueryAttributes(array $fields, bool $removePk = false): array
+    {
+        $model = new $this->model;
+        $attrs = $model->getFillable();
+        foreach ($fields as $key => $field) {
+            if (!in_array(trim($field), $attrs)) {
+                unset($fields[$key]);
+            } else {
+                $fields[$key] = trim($field);
+            }
+        }
+        if ($removePk && in_array($model->getKeyName(), $fields)) {
+            unset($fields[array_search($model->getKeyName(), $fields)]);
+        }
+        $model = null;
+        return (count($fields) < 1) ? ['*'] : $fields;
     }
 
     /**
@@ -151,27 +125,72 @@ trait MapperTrait
     }
 
     /**
-     * 过滤查询字段不存在的属性
-     * @param array $fields
-     * @param bool $removePk
+     * 获取列表数据（带分页）
+     * @param array|null $params
+     * @param bool $isScope
+     * @param string $pageName
      * @return array
      */
-    protected function filterQueryAttributes(array $fields, bool $removePk = false): array
+    public function getPageList(?array $params, bool $isScope = true, string $pageName = 'page'): array
     {
-        $model = new $this->model;
-        $attrs = $model->getFillable();
-        foreach ($fields as $key => $field) {
-            if (!in_array(trim($field), $attrs)) {
-                unset($fields[$key]);
-            } else {
-                $fields[$key] = trim($field);
-            }
-        }
-        if ($removePk && in_array($model->getKeyName(), $fields)) {
-            unset($fields[array_search($model->getKeyName(), $fields)]);
-        }
-        $model = null;
-        return ( count($fields) < 1 ) ? ['*'] : $fields;
+        $paginate = $this->listQuerySetting($params, $isScope)->paginate(
+            $params['pageSize'] ?? $this->model::PAGE_SIZE,
+            ['*'],
+            $pageName,
+            $params[$pageName] ?? 1
+        );
+        return $this->setPaginate($paginate);
+    }
+
+    /**
+     * 设置数据库分页
+     * @param LengthAwarePaginatorInterface $paginate
+     * @return array
+     */
+    public function setPaginate(LengthAwarePaginatorInterface $paginate): array
+    {
+        return [
+            'items' => $paginate->items(),
+            'pageInfo' => [
+                'total' => $paginate->total(),
+                'currentPage' => $paginate->currentPage(),
+                'totalPage' => $paginate->lastPage()
+            ]
+        ];
+    }
+
+    /**
+     * 获取树列表
+     * @param array|null $params
+     * @param bool $isScope
+     * @param string $id
+     * @param string $parentField
+     * @param string $children
+     * @return array
+     */
+    public function getTreeList(
+        ?array $params = null,
+        bool   $isScope = true,
+        string $id = 'id',
+        string $parentField = 'parent_id',
+        string $children = 'children'
+    ): array {
+        $params['_mainAdmin_tree'] = true;
+        $params['_mainAdmin_tree_pid'] = $parentField;
+        $data = $this->listQuerySetting($params, $isScope)->get();
+        return $data->toTree([], $data[0]->{$parentField} ?? 0, $id, $parentField, $children);
+    }
+
+    /**
+     * 新增数据，返回主键
+     * @param array $data
+     * @return int
+     */
+    public function save(array $data): int
+    {
+        $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
+        $model = $this->model::create($data);
+        return $model->{$model->getKeyName()};
     }
 
     /**
@@ -195,21 +214,28 @@ trait MapperTrait
     }
 
     /**
-     * 新增数据
-     * @param array $data
-     * @return int
+     * @return MineModel
      */
-    public function save(array $data): int
+    public function getModel(): MineModel
+    {
+        return new $this->model;
+    }
+
+    /**
+     * 新增数据，返回模型
+     * @param array $data
+     * @return Model
+     */
+    public function create(array $data): Model
     {
         $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
-        $model = $this->model::create($data);
-        return $model->{$model->getKeyName()};
+        return $this->model::create($data);
     }
 
     /**
      * 读取一条数据
      * @param int $id
-     * @return MineModel
+     * @return MineModel|null
      */
     public function read(int $id): ?MineModel
     {
@@ -231,7 +257,7 @@ trait MapperTrait
      * 获取单个值
      * @param array $condition
      * @param string $columns
-     * @return \Hyperf\Utils\HigherOrderTapProxy|mixed|void|null
+     * @return HigherOrderTapProxy|mixed|void|null
      */
     public function value(array $condition, string $columns = 'id')
     {
@@ -349,94 +375,86 @@ trait MapperTrait
     }
 
     /**
-     * @return MineModel
-     */
-    public function getModel(): MineModel
-    {
-        return new $this->model;
-    }
-
-    /**
      * 数据导入
      * @param string $dto
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @return bool
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws Exception
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @Transaction
      */
-    public function import(string $dto, ?\Closure $closure = null): bool
+    public function import(string $dto, ?Closure $closure = null): bool
     {
         return (new MineCollection())->import($dto, $this->getModel(), $closure);
     }
 
     /**
+     * 闭包通用方式查询一条数据
+     * @param Closure|null $closure
+     * @param array|string[] $column
+     * @return Builder|Model|null
+     */
+    public function one(?Closure $closure = null, array $column = ['*'])
+    {
+        return $this->settingClosure($closure)->select($column)->first();
+    }
+
+    /**
      * 闭包通用查询设置
-     * @param \Closure|null $closure 传入的闭包查询
+     * @param Closure|null $closure 传入的闭包查询
      * @return Builder
      */
-    public function settingClosure(?\Closure $closure = null): Builder
+    public function settingClosure(?Closure $closure = null): Builder
     {
-        return $this->model::where(function($query) use($closure) {
-            if ($closure instanceof \Closure) {
+        return $this->model::where(function ($query) use ($closure) {
+            if ($closure instanceof Closure) {
                 $closure($query);
             }
         });
     }
 
     /**
-     * 闭包通用方式查询一条数据
-     * @param \Closure|null $closure
-     * @param array|string[] $column
-     * @return Builder|Model|null
-     */
-    public function one(?\Closure $closure = null, array $column = ['*'])
-    {
-        return $this->settingClosure($closure)->select($column)->first();
-    }
-
-    /**
      * 闭包通用方式查询数据集合
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @param array|string[] $column
      * @return array
      */
-    public function get(?\Closure $closure = null, array $column = ['*']): array
+    public function get(?Closure $closure = null, array $column = ['*']): array
     {
         return $this->settingClosure($closure)->get($column)->toArray();
     }
 
     /**
      * 闭包通用方式统计
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @param string $column
      * @return int
      */
-    public function count(?\Closure $closure = null, string $column = '*'): int
+    public function count(?Closure $closure = null, string $column = '*'): int
     {
         return $this->settingClosure($closure)->count($column);
     }
 
     /**
      * 闭包通用方式查询最大值
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @param string $column
      * @return mixed|string|void
      */
-    public function max(?\Closure $closure = null, string $column = '*')
+    public function max(?Closure $closure = null, string $column = '*')
     {
         return $this->settingClosure($closure)->max($column);
     }
 
     /**
      * 闭包通用方式查询最小值
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @param string $column
      * @return mixed|string|void
      */
-    public function min(?\Closure $closure = null, string $column = '*')
+    public function min(?Closure $closure = null, string $column = '*')
     {
         return $this->settingClosure($closure)->min($column);
     }
@@ -451,15 +469,15 @@ trait MapperTrait
     {
         $dictDataService = make(SystemDictDataService::class);
         $result = [];
-        $data =  $dictDataService->getList(['code' =>$field]);
+        $data = $dictDataService->getList(['code' => $field]);
         foreach ($data as $v) {
             if ($v['value'] === '-1') {
-                $result[] = ['value' => $v['value'],'num' => $this->model::count()];
+                $result[] = ['value' => $v['value'], 'num' => $this->model::count()];
             } else {
-                $result[] = ['value' => $v['value'],'num' => $this->model::where($field,$v['value'])->count()];
+                $result[] = ['value' => $v['value'], 'num' => $this->model::where($field, $v['value'])->count()];
             }
         }
 
-        return  $result;
+        return $result;
     }
 }

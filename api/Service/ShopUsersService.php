@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Api\Service;
 
 use Api\Mapper\ShopUsersMapper;
+use App\Shop\Model\ShopUser;
 use Exception;
+use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Di\Annotation\Inject;
+use JetBrains\PhpStorm\ArrayShape;
 use Mine\Abstracts\AbstractService;
 use Mine\Constants\StatusCode;
 use Mine\Event\ApiUserLoginAfter;
 use Mine\Event\UserLoginBefore;
 use Mine\Exception\NormalStatusException;
+use Mine\Exception\UserBanException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -38,24 +42,38 @@ class ShopUsersService extends AbstractService
         $this->mapper = $mapper;
     }
 
-    public function registerByAccount($data): array
+    /**
+     * 账号密码注册
+     * @param array $data
+     * @return array
+     * @throws ContainerExceptionInterface
+     * @throws InvalidArgumentException
+     * @throws NotFoundExceptionInterface
+     */
+    #[ArrayShape(['userinfo' => "\Hyperf\Database\Model\Model", 'token' => "string"])]
+    public function registerByAccount(array $data): array
     {
         if ($this->mapper->existsByUsername($data['username'])) {
             throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);
         }
-
+        // 登录之前的事件
         $this->evDispatcher->dispatch(new UserLoginBefore($data));
-        $userId = $this->mapper->save($data);
-        $userinfo = $this->mapper->read($userId)->toArray();
-        $userLoginAfter = new ApiUserLoginAfter($userinfo);
+        // 新增用户
+        $userinfo = $this->mapper->create($data);
+        // 用户信息转数组
+        $userinfoArr = $userinfo->toArray();
+        // 登录之后的事件
+        $userLoginAfter = new ApiUserLoginAfter($userinfoArr);
         $userLoginAfter->message = t('jwt.register_success');
+        // 生成token
         try {
-            $token = user('api')->getToken($userinfo);
+            $token = user('api')->getToken($userinfoArr);
         } catch (Exception $e) {
             console()->error($e->getMessage());
             throw new NormalStatusException(t('jwt.unknown_error'));
         }
         $userLoginAfter->token = $token;
+        // 调度登录之后的事件
         $this->evDispatcher->dispatch($userLoginAfter);
         return [
             'userinfo' => $userinfo,
@@ -66,36 +84,37 @@ class ShopUsersService extends AbstractService
     /**
      * 用户登陆
      * @param array $data
-     * @return string|null
+     * @return array
      * @throws InvalidArgumentException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function login(array $data): ?string
+    #[ArrayShape(['userinfo' => "array", 'token' => "string"])]
+    public function login(array $data): array
     {
         try {
             $this->evDispatcher->dispatch(new UserLoginBefore($data));
-            $userinfo = $this->mapper->checkUserByUsername($data['username'])->toArray();
-            $password = $userinfo['password'];
-            unset($userinfo['password']);
-            $userLoginAfter = new ApiUserLoginAfter($userinfo);
+            $userinfo = $this->mapper->checkUserByUsername($data['username']);
+            $userinfoArr = $userinfo->toArray();
+            $password = $userinfoArr['password'];
+            unset($userinfoArr['password']);
+            $userLoginAfter = new ApiUserLoginAfter($userinfoArr);
             if ($this->mapper->checkPass($data['password'], $password)) {
-                if (
-                    ($userinfo['status'] == SystemUser::USER_NORMAL)
-                    ||
-                    ($userinfo['status'] == SystemUser::USER_BAN && $userinfo['id'] == env('SUPER_ADMIN'))
-                ) {
-                    $userLoginAfter->message = t('jwt.login_success');
-                    $token = user()->getToken($userLoginAfter->userinfo);
-                    $userLoginAfter->token = $token;
-                    $this->evDispatcher->dispatch($userLoginAfter);
-                    return $token;
-                } else {
+                if ($userinfo['status'] == ShopUser::USER_BAN) {
                     $userLoginAfter->loginStatus = false;
                     $userLoginAfter->message = t('jwt.user_ban');
                     $this->evDispatcher->dispatch($userLoginAfter);
                     throw new UserBanException;
                 }
+
+                $userLoginAfter->message = t('jwt.login_success');
+                $token = user()->getToken($userLoginAfter->userinfo);
+                $userLoginAfter->token = $token;
+                $this->evDispatcher->dispatch($userLoginAfter);
+                return [
+                    'userinfo' => $userinfo,
+                    'token' => $token,
+                ];
             } else {
                 $userLoginAfter->loginStatus = false;
                 $userLoginAfter->message = t('jwt.password_error');
@@ -104,16 +123,13 @@ class ShopUsersService extends AbstractService
             }
         } catch (Exception $e) {
             if ($e instanceof ModelNotFoundException) {
-                throw new NormalStatusException(t('jwt.username_error'), MineCode::NO_DATA);
+                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_ABSENT), StatusCode::ERR_USER_ABSENT);
             }
             if ($e instanceof NormalStatusException) {
-                throw new NormalStatusException(t('jwt.password_error'), MineCode::PASSWORD_ERROR);
+                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_PASSWORD), StatusCode::ERR_USER_PASSWORD);
             }
             if ($e instanceof UserBanException) {
-                throw new NormalStatusException(t('jwt.user_ban'), MineCode::USER_BAN);
-            }
-            if ($e instanceof CaptchaException) {
-                throw new NormalStatusException(t('jwt.code_error'));
+                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_DISABLE), StatusCode::ERR_USER_DISABLE);
             }
             console()->error($e->getMessage());
             throw new NormalStatusException(t('jwt.unknown_error'));
@@ -205,6 +221,4 @@ class ShopUsersService extends AbstractService
 //        }
 //        return $this->mapper->update($id, $this->handleData($data));
 //    }
-
-
 }

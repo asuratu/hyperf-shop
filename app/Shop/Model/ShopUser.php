@@ -25,9 +25,12 @@ use Mine\MineModel;
  * @property string $deleted_at 删除时间
  * @property string $remark 备注
  */
-class ShopUsers extends MineModel
+class ShopUser extends MineModel
 {
     use SoftDeletes;
+
+    public const USER_NORMAL = 0;
+    public const    USER_BAN = 1;
 
     public $incrementing = false;
     /**
@@ -70,5 +73,5 @@ class ShopUsers extends MineModel
         $this->attributes['password'] = password_hash($value, PASSWORD_DEFAULT);
     }
 
-    
+
 }

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Api\Mapper;
 
-use App\Shop\Model\ShopUsers;
+use App\Shop\Model\ShopUser;
+use Hyperf\Database\Model\Builder;
+use Hyperf\Database\Model\Model;
+use Hyperf\Database\Model\ModelNotFoundException;
 use Mine\Abstracts\AbstractMapper;
 
 /**
@@ -13,13 +16,13 @@ use Mine\Abstracts\AbstractMapper;
 class ShopUsersMapper extends AbstractMapper
 {
     /**
-     * @var ShopUsers
+     * @var ShopUser
      */
     public $model;
 
     public function assignModel()
     {
-        $this->model = ShopUsers::class;
+        $this->model = ShopUser::class;
     }
 
     /**
@@ -43,5 +46,15 @@ class ShopUsersMapper extends AbstractMapper
         return $this->model::passwordVerify($password, $hash);
     }
 
-   
+    /**
+     * 通过用户名检查用户
+     * @param string $username
+     * @return Builder|Model
+     * @throws ModelNotFoundException
+     */
+    public function checkUserByUsername(string $username): Model|Builder
+    {
+        return $this->model::query()->where('username', $username)->firstOrFail();
+    }
+
 }
