@@ -7,6 +7,8 @@ namespace Api\Service;
 use Api\Mapper\ShopUsersMapper;
 use App\Shop\Model\ShopUser;
 use Exception;
+use Hyperf\Cache\Annotation\Cacheable;
+use Hyperf\Database\Model\Model;
 use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Di\Annotation\Inject;
 use JetBrains\PhpStorm\ArrayShape;
@@ -14,6 +16,8 @@ use Mine\Abstracts\AbstractService;
 use Mine\Constants\StatusCode;
 use Mine\Event\ApiUserLoginAfter;
 use Mine\Event\UserLoginBefore;
+use Mine\Event\UserLogout;
+use Mine\Exception\MineException;
 use Mine\Exception\NormalStatusException;
 use Mine\Exception\UserBanException;
 use Psr\Container\ContainerExceptionInterface;
@@ -53,13 +57,7 @@ class ShopUsersService extends AbstractService
     #[ArrayShape(['userinfo' => "\Hyperf\Database\Model\Model", 'token' => "string"])]
     public function registerByAccount(array $data): array
     {
-        if ($this->mapper->existsByUsername($data['username'])) {
-            throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);
-        }
-        // 登录之前的事件
-        $this->evDispatcher->dispatch(new UserLoginBefore($data));
-        // 新增用户
-        $userinfo = $this->mapper->create($data);
+        $userinfo = $this->save($data);
         // 用户信息转数组
         $userinfoArr = $userinfo->toArray();
         // 登录之后的事件
@@ -79,6 +77,23 @@ class ShopUsersService extends AbstractService
             'userinfo' => $userinfo,
             'token' => $token,
         ];
+    }
+
+    /**
+     * 新增用户
+     * @param array $data
+     * @return Model
+     * @throws NormalStatusException
+     */
+    public function save(array $data): Model
+    {
+        if ($this->mapper->existsByUsername($data['username'])) {
+            throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);
+        }
+        // 登录之前的事件
+        $this->evDispatcher->dispatch(new UserLoginBefore($data));
+        // 新增用户
+        return $this->mapper->create($data);
     }
 
     /**
@@ -140,69 +155,42 @@ class ShopUsersService extends AbstractService
      * 用户退出
      * @throws InvalidArgumentException
      */
-//    public function logout()
-//    {
-//        $user = user();
-//        $this->evDispatcher->dispatch(new UserLogout($user->getUserInfo()));
-//        $user->getJwt()->logout();
-//    }
+    public function logout()
+    {
+        $user = user('api');
+        $this->evDispatcher->dispatch(new UserLogout($user->getUserInfo()));
+        $user->getJwt()->logout();
+    }
 
     /**
      * 获取用户信息
-     * @return array
+     * @return ShopUser
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-//    public function getInfo(): array
-//    {
-//        if (($uid = user()->getId())) {
-//            return $this->getCacheInfo((int)$uid);
-//        }
-//        throw new MineException(t('system.unable_get_userinfo'), 500);
-//    }
+    public function getInfo(): ShopUser
+    {
+        if (($uid = user('api')->getId())) {
+            return $this->getCacheInfo((int)$uid);
+        }
+        throw new MineException(t('system.unable_get_userinfo'), 500);
+    }
 
     /**
      * 获取缓存用户信息
      * @param int $id
-     * @return array
+     * @return ShopUser
      */
-//    #[Cacheable(prefix: "loginInfo", ttl: 0, value: "userId_#{id}")]
-//    protected function getCacheInfo(int $id): array
-//    {
-//        $user = $this->mapper->getModel()->find($id);
-//        $user->addHidden('deleted_at', 'password');
-//        $data['user'] = $user->toArray();
-//        if (user()->isSuperAdmin()) {
-//            $data['roles'] = ['superAdmin'];
-//            $data['routers'] = $this->sysMenuService->mapper->getSuperAdminRouters();
-//            $data['codes'] = ['*'];
-//        } else {
-//            $roles = $this->sysRoleService->mapper->getMenuIdsByRoleIds($user->roles()->pluck('id')->toArray());
-//            $ids = $this->filterMenuIds($roles);
-//            $data['roles'] = $user->roles()->pluck('code')->toArray();
-//            $data['routers'] = $this->sysMenuService->mapper->getRoutersByIds($ids);
-//            $data['codes'] = $this->sysMenuService->mapper->getMenuCode($ids);
-//        }
-//
-//        return $data;
-//    }
-
-
-    /**
-     * 新增用户
-     * @param array $data
-     * @return int
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-//    public function save(array $data): int
-//    {
-//        if ($this->mapper->existsByUsername($data['username'])) {
-//            throw new NormalStatusException(t('system.username_exists'));
-//        } else {
-//            return $this->mapper->save($data);
-//        }
-//    }
+    #[Cacheable(prefix: "loginInfo", ttl: 0, value: "userId_#{id}")]
+    protected function getCacheInfo(int $id): ShopUser
+    {
+        $user = $this->mapper->getModel()->findOrFail($id);
+        if (!$user instanceof ShopUser) {
+            throw new ModelNotFoundException();
+        }
+        $user->addHidden('deleted_at', 'password');
+        return $user;
+    }
 
     /**
      * 更新用户信息

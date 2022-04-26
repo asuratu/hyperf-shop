@@ -6,11 +6,14 @@ namespace Api\Controller\v1;
 
 use Api\Request\Users\ShopUserLoginRequest;
 use Api\Request\Users\ShopUserRegisterRequest;
+use Api\Resource\ShopUserResource;
 use Api\Resource\UserLoginResource;
 use Api\Service\ShopUsersService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
+use Mine\Annotation\Auth;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -71,5 +74,30 @@ class AuthController extends BaseController
                 )
             )
         );
+    }
+
+    /**
+     * 用户信息
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("getInfo"), Auth('api')]
+    public function getInfo(): ResponseInterface
+    {
+        return $this->success(new ShopUserResource($this->service->getInfo()));
+    }
+
+    /**
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws InvalidArgumentException
+     */
+    #[PostMapping("logout"), Auth('api')]
+    public function logout(): ResponseInterface
+    {
+        $this->service->logout();
+        return $this->success();
     }
 }
