@@ -7,3 +7,5 @@
 .env
 .gitee
 public/uploadfile/*
+.php
+.php-cs-fixer.cache
