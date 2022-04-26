@@ -57,7 +57,7 @@ class ShopUsersService extends AbstractService
     #[ArrayShape(['userinfo' => "\Hyperf\Database\Model\Model", 'token' => "string"])]
     public function registerByAccount(array $data): array
     {
-        $userinfo = $this->save($data);
+        $userinfo = $this->saveUser($data);
         // 用户信息转数组
         $userinfoArr = $userinfo->toArray();
         // 登录之后的事件
@@ -85,7 +85,7 @@ class ShopUsersService extends AbstractService
      * @return Model
      * @throws NormalStatusException
      */
-    public function save(array $data): Model
+    public function saveUser(array $data): Model
     {
         if ($this->mapper->existsByUsername($data['username'])) {
             throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);

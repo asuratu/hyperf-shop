@@ -14,6 +14,7 @@ use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Mine\Annotation\Auth;
+use Mine\Helper\LoginUser;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -89,6 +90,7 @@ class AuthController extends BaseController
     }
 
     /**
+     * 退出登录
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -99,5 +101,19 @@ class AuthController extends BaseController
     {
         $this->service->logout();
         return $this->success();
+    }
+
+    /**
+     * 刷新token
+     * @param LoginUser $user
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws InvalidArgumentException
+     */
+    #[PostMapping("refresh")]
+    public function refresh(LoginUser $user): ResponseInterface
+    {
+        return $this->success(['token' => $user->refresh()]);
     }
 }
