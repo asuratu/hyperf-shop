@@ -11,12 +11,17 @@
 
 namespace Mine\Traits;
 
+use Closure;
 use Hyperf\Database\Model\Collection;
+use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Abstracts\AbstractMapper;
 use Mine\Annotation\Transaction;
 use Mine\MineCollection;
 use Mine\MineModel;
 use Mine\MineResponse;
+use PhpOffice\PhpSpreadsheet\Writer\Exception;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 
 trait ServiceTrait
@@ -154,7 +159,7 @@ trait ServiceTrait
      * User:mike
      * @param array $condition
      * @param string $columns
-     * @return \Hyperf\Utils\HigherOrderTapProxy|mixed|void|null
+     * @return HigherOrderTapProxy|mixed|void|null
      */
     public function value(array $condition, string $columns = 'id')
     {
@@ -189,7 +194,7 @@ trait ServiceTrait
      * @param string $ids
      * @return bool
      */
-    public function delete(String $ids): bool
+    public function delete(string $ids): bool
     {
         return !empty($ids) && $this->mapper->delete(explode(',', $ids));
     }
@@ -269,7 +274,7 @@ trait ServiceTrait
         if ($value === '0') {
             $this->mapper->enable([$id]);
             return true;
-        } else if ($value === '1') {
+        } elseif ($value === '1') {
             $this->mapper->disable([$id]);
             return true;
         } else {
@@ -283,9 +288,9 @@ trait ServiceTrait
      * @param string|null $dto
      * @param string|null $filename
      * @return ResponseInterface
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws Exception
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function export(array $params, ?string $dto, string $filename = null): ResponseInterface
     {
@@ -303,16 +308,12 @@ trait ServiceTrait
     /**
      * 数据导入
      * @param string $dto
-     * @param \Closure|null $closure
+     * @param Closure|null $closure
      * @param bool $isExportErrorData
-     * @return array|ResponseInterface
-     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @return bool
      * @Transaction
      */
-    public function import(string $dto, ?\Closure $closure = null, bool $isExportErrorData = false): bool
+    public function import(string $dto, ?Closure $closure = null, bool $isExportErrorData = false): bool
     {
         return $this->mapper->import($dto, $closure, $isExportErrorData);
     }
@@ -331,11 +332,11 @@ trait ServiceTrait
         $page = 1;
 
         if ($params[$pageName] ?? false) {
-            $page = (int) $params[$pageName];
+            $page = (int)$params[$pageName];
         }
 
         if ($params['pageSize'] ?? false) {
-            $pageSize = (int) $params['pageSize'];
+            $pageSize = (int)$params['pageSize'];
         }
 
         $data = $collect->forPage($page, $pageSize)->toArray();
@@ -362,6 +363,16 @@ trait ServiceTrait
     }
 
     /**
+     * 设置需要分页的数组数据
+     * @param array $params
+     * @return array
+     */
+    protected function getArrayData(array $params = []): array
+    {
+        return [];
+    }
+
+    /**
      * 数组当前页数据返回之前处理器，默认对key重置
      * @param array $data
      * @param array $params
@@ -374,19 +385,8 @@ trait ServiceTrait
     }
 
     /**
-     * 设置需要分页的数组数据
-     * @param array $params
-     * @return array
-     */
-    protected function getArrayData(array $params = []): array
-    {
-        return [];
-    }
-
-    /**
      * 获取tabs数据统计
      * @param string $field
-     * @param $dictDataService
      * @return array
      */
     public function getTabNum(string $field): array
