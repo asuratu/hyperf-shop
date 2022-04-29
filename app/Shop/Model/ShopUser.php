@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shop\Model;
 
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\MineModel;
 
@@ -68,5 +69,10 @@ class ShopUser extends MineModel
     public function setPasswordAttribute($value): void
     {
         $this->attributes['password'] = password_hash($value, PASSWORD_DEFAULT);
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(ShopAddresses::class);
     }
 }

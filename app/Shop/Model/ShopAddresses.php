@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shop\Model;
 
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\BelongsTo;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\MineModel;
 
@@ -46,4 +47,14 @@ class ShopAddresses extends MineModel
      * @var array
      */
     protected $casts = ['id' => 'integer', 'user_id' => 'integer', 'zip' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(ShopUser::class);
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return "$this->province $this->city $this->district $this->address";
+    }
 }
