@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace Api\Controller\v1;
 
-use Api\Request\Users\ShopAddressesCreateRequest;
+use Api\Request\Users\ShopAddressesRequest;
 use Api\Resource\ShopAddressResource;
 use Api\Service\ShopAddressesService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
-use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
 use Mine\Annotation\Auth;
-use Mine\Annotation\OperationLog;
-use Mine\Annotation\Permission;
 use Mine\MineController;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -51,92 +48,28 @@ class ShopAddressesController extends MineController
 
     /**
      * 新增
-     * @param ShopAddressesCreateRequest $request
+     * @param ShopAddressesRequest $request
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[PostMapping("save")]
-    public function save(ShopAddressesCreateRequest $request): ResponseInterface
+    public function save(ShopAddressesRequest $request): ResponseInterface
     {
         return $this->success(['id' => $this->service->mySave($request->all())]);
     }
 
     /**
-     * 读取数据
-     * @param int $id
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[GetMapping("read/{id}"), Permission("shop:addresses:read")]
-    public function read(int $id): ResponseInterface
-    {
-        return $this->success($this->service->read($id));
-    }
-
-    /**
      * 更新
      * @param int $id
-     * @param ShopAddressesUpdateRequest $request
+     * @param ShopAddressesRequest $request
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    #[PutMapping("update/{id}"), Permission("shop:addresses:update"), OperationLog]
-    public function update(int $id, ShopAddressesUpdateRequest $request): ResponseInterface
+    #[PutMapping("update/{id}")]
+    public function update(int $id, ShopAddressesRequest $request): ResponseInterface
     {
-        return $this->service->update($id, $request->all()) ? $this->success() : $this->error();
-    }
-
-    /**
-     * 单个或批量删除数据到回收站
-     * @param String $ids
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[DeleteMapping("delete/{ids}"), Permission("shop:addresses:delete"), OperationLog]
-    public function delete(string $ids): ResponseInterface
-    {
-        return $this->service->delete($ids) ? $this->success() : $this->error();
-    }
-
-    /**
-     * 单个或批量真实删除数据 （清空回收站）
-     * @param String $ids
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[DeleteMapping("realDelete/{ids}"), Permission("shop:addresses:realDelete"), OperationLog]
-    public function realDelete(string $ids): ResponseInterface
-    {
-        return $this->service->realDelete($ids) ? $this->success() : $this->error();
-    }
-
-    /**
-     * 单个或批量恢复在回收站的数据
-     * @param String $ids
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[PutMapping("recovery/{ids}"), Permission("shop:addresses:recovery"), OperationLog]
-    public function recovery(string $ids): ResponseInterface
-    {
-        return $this->service->recovery($ids) ? $this->success() : $this->error();
-    }
-
-    /**
-     * 获取tabs统计数据
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[PostMapping("getTabNum")]
-    public function getTabNum(): ResponseInterface
-    {
-        return $this->success($this->service->getTabNum($this->request->input('key')));
+        return $this->service->myUpdate($id, $request->all()) ? $this->success() : $this->error();
     }
 }

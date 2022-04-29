@@ -50,7 +50,7 @@ class StatusCode extends AbstractConstants
     public const ERR_SERVER = 500;
 
     /**
-     * @Message("系统维护中。。。!")
+     * @Message("数据不存在!")
      */
     public const ERR_MAINTAIN = 404;
 

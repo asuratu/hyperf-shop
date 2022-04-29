@@ -244,6 +244,18 @@ trait ServiceTrait
     }
 
     /**
+     * 更新当前用户相关的一条数据
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    public function myUpdate(int $id, array $data): bool
+    {
+        return $this->mapper->myUpdate($id, $data, user('api')->getId());
+    }
+
+
+    /**
      * 按条件更新数据
      * @param array $condition
      * @param array $data

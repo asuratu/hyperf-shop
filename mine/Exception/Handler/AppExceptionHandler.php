@@ -9,15 +9,16 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+
 namespace Mine\Exception\Handler;
 
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
+use Hyperf\Logger\Logger;
 use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\Codec\Json;
 use Psr\Http\Message\ResponseInterface;
-use Hyperf\Logger\Logger;
 use Throwable;
 
 class AppExceptionHandler extends ExceptionHandler
@@ -42,7 +43,7 @@ class AppExceptionHandler extends ExceptionHandler
         $this->logger->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
         $format = [
             'success' => false,
-            'code'    => 500,
+            'code' => 500,
             'message' => $throwable->getMessage()
         ];
         return $response->withHeader('Server', 'MineAdmin')

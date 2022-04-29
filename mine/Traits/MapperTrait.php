@@ -18,6 +18,8 @@ use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Annotation\Transaction;
+use Mine\Constants\StatusCode;
+use Mine\Exception\NormalStatusException;
 use Mine\MineCollection;
 use Mine\MineModel;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -328,11 +330,57 @@ trait MapperTrait
     public function update(int $id, array $data): bool
     {
         $this->filterExecuteAttributes($data, true);
-        $model = $this->model::find($id);
+        $model = $this->model::findOrFail($id);
         foreach ($data as $name => $val) {
             $model[$name] = $val;
         }
         return $model->save();
+    }
+
+    /**
+     * 更新当前用户相关的一条数据
+     * @param int $id
+     * @param array $data
+     * @param string|int $userId
+     * @return bool
+     */
+    public function myUpdate(int $id, array $data, string|int $userId): bool
+    {
+        $this->filterExecuteAttributes($data, true);
+        $model = $this->model::findOrFail($id);
+
+        if ($model->user_id != $userId) {
+            throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_NOT_PERMISSION), StatusCode::ERR_NOT_PERMISSION);
+        }
+
+        foreach ($data as $name => $val) {
+            $model[$name] = $val;
+        }
+        return $model->save();
+    }
+
+    /**
+     * 闭包通用方式检查数据是否存在
+     * @param Closure|null $closure
+     * @return bool
+     */
+    public function exists(?Closure $closure = null): bool
+    {
+        return $this->settingClosure($closure)->exists();
+    }
+
+    /**
+     * 闭包通用查询设置
+     * @param Closure|null $closure 传入的闭包查询
+     * @return Builder
+     */
+    public function settingClosure(?Closure $closure = null): Builder
+    {
+        return $this->model::where(function ($query) use ($closure) {
+            if ($closure instanceof Closure) {
+                $closure($query);
+            }
+        });
     }
 
     /**
@@ -421,20 +469,6 @@ trait MapperTrait
     public function one(?Closure $closure = null, array $column = ['*'])
     {
         return $this->settingClosure($closure)->select($column)->first();
-    }
-
-    /**
-     * 闭包通用查询设置
-     * @param Closure|null $closure 传入的闭包查询
-     * @return Builder
-     */
-    public function settingClosure(?Closure $closure = null): Builder
-    {
-        return $this->model::where(function ($query) use ($closure) {
-            if ($closure instanceof Closure) {
-                $closure($query);
-            }
-        });
     }
 
     /**

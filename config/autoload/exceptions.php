@@ -18,6 +18,7 @@ return [
             Mine\Exception\Handler\TokenExceptionHandler::class,
             Mine\Exception\Handler\NoPermissionExceptionHandler::class,
             Mine\Exception\Handler\NormalStatusExceptionHandler::class,
+            Mine\Exception\Handler\ModelNotFoundExceptionHandler::class,
             Mine\Exception\Handler\AppExceptionHandler::class,
         ],
     ],

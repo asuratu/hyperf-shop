@@ -28,8 +28,7 @@ trait ModelMacroTrait
     {
         // 数据权限方法
         $model = $this;
-        Builder::macro('userDataScope', function(?int $userid = null) use($model)
-        {
+        Builder::macro('userDataScope', function (?int $userid = null) use ($model) {
             if (! config('mineadmin.data_scope_enabled')) {
                 return $this;
             }
@@ -49,8 +48,7 @@ trait ModelMacroTrait
                 return $this;
             }
 
-            $dataScope = new class($userid, $this)
-            {
+            $dataScope = new class($userid, $this) {
                 // 用户ID
                 protected int $userid;
 
@@ -133,31 +131,31 @@ trait ModelMacroTrait
     private function registerBase()
     {
         //添加andFilterWhere()方法
-        Builder::macro('andFilterWhere', function ($key, $operator, $value = NULL) {
+        Builder::macro('andFilterWhere', function ($key, $operator, $value = null) {
             if ($value === '' || $value === '%%' || $value === '%') {
                 return $this;
             }
             if ($operator === '' || $operator === '%%' || $operator === '%') {
                 return $this;
             }
-            if($value === NULL){
+            if ($value === null) {
                 return $this->where($key, $operator);
-            }else{
+            } else {
                 return $this->where($key, $operator, $value);
             }
         });
 
         //添加orFilterWhere()方法
-        Builder::macro('orFilterWhere', function ($key, $operator, $value = NULL) {
+        Builder::macro('orFilterWhere', function ($key, $operator, $value = null) {
             if ($value === '' || $value === '%%' || $value === '%') {
                 return $this;
             }
             if ($operator === '' || $operator === '%%' || $operator === '%') {
                 return $this;
             }
-            if($value === NULL){
+            if ($value === null) {
                 return $this->orWhere($key, $operator);
-            }else{
+            } else {
                 return $this->orWhere($key, $operator, $value);
             }
         });

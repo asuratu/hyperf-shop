@@ -10,6 +10,7 @@
  */
 
 declare(strict_types=1);
+
 namespace Mine\Aspect;
 
 use Hyperf\Di\Annotation\Aspect;
@@ -19,6 +20,8 @@ use Hyperf\Di\Exception\Exception;
 use Mine\Annotation\Auth;
 use Mine\Exception\TokenException;
 use Mine\Helper\LoginUser;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * Class AuthAspect
@@ -27,7 +30,6 @@ use Mine\Helper\LoginUser;
 #[Aspect]
 class AuthAspect extends AbstractAspect
 {
-
     public $annotations = [
         Auth::class
     ];
@@ -46,8 +48,8 @@ class AuthAspect extends AbstractAspect
      * @param ProceedingJoinPoint $proceedingJoinPoint
      * @return mixed
      * @throws Exception
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function process(ProceedingJoinPoint $proceedingJoinPoint)
     {

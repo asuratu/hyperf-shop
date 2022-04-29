@@ -6,9 +6,9 @@ use Hyperf\Validation\Request\FormRequest;
 use JetBrains\PhpStorm\ArrayShape;
 
 /**
- * 收货地址管理验证数据类 (Create)
+ * 收货地址管理验证数据类 (Create Update)
  */
-class ShopAddressesCreateRequest extends FormRequest
+class ShopAddressesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
