@@ -76,6 +76,22 @@ trait ServiceTrait
     }
 
     /**
+     * 获取用户相关的列表数据（带分页）
+     * @param int|string $id
+     * @param array|null $params
+     * @param bool $isScope
+     * @param string $foreignKey
+     * @return array
+     */
+    public function getMyPageList(int|string $id, ?array $params = null, bool $isScope = true, string $foreignKey = 'user_id'): array
+    {
+        if ($params['select'] ?? null) {
+            $params['select'] = explode(',', $params['select']);
+        }
+        return $this->mapper->getMyPageList($id, $params, $isScope, $foreignKey);
+    }
+
+    /**
      * 从回收站获取列表数据（带分页）
      * @param array|null $params
      * @param bool $isScope

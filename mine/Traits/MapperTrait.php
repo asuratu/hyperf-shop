@@ -160,6 +160,28 @@ trait MapperTrait
     }
 
     /**
+     * 设置外键相关数据库分页
+     * @param int|string $id
+     * @param array|null $params
+     * @param bool $isScope
+     * @param string $foreignKey
+     * @param string $pageName
+     * @return array
+     */
+    public function getMyPageList(int|string $id, ?array $params, bool $isScope = true, string $foreignKey = 'user_id', string $pageName = 'page'): array
+    {
+        $paginate = $this->listQuerySetting($params, $isScope)
+            ->where($foreignKey, $id)
+            ->paginate(
+                $params['pageSize'] ?? $this->model::PAGE_SIZE,
+                ['*'],
+                $pageName,
+                $params[$pageName] ?? 1
+            );
+        return $this->setPaginate($paginate);
+    }
+
+    /**
      * 获取树列表
      * @param array|null $params
      * @param bool $isScope

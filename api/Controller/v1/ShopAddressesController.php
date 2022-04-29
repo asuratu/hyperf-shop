@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Api\Controller\v1;
 
+use Api\Resource\ShopAddressCollection;
+use Api\Resource\ShopAddressResource;
+use Api\Service\ShopAddressesService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -38,23 +41,12 @@ class ShopAddressesController extends MineController
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    #[GetMapping("index"), Permission("shop:addresses:index")]
+    #[GetMapping("index")]
     public function index(): ResponseInterface
     {
-        dump(22);
-        return $this->success($this->service->getPageList($this->request->all()));
-    }
-
-    /**
-     * 回收站列表
-     * @return ResponseInterface
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    #[GetMapping("recycle"), Permission("shop:addresses:recycle")]
-    public function recycle(): ResponseInterface
-    {
-        return $this->success($this->service->getPageListByRecycle($this->request->all()));
+        $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all());
+        $list['items'] = ShopAddressResource::collection($list['items']);
+        return $this->success($list);
     }
 
     /**
