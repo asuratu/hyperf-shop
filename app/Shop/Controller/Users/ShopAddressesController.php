@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shop\Controller\Users;
 
-use App\Shop\Request\Users\ShopAddressesCreateRequest;
-use App\Shop\Request\Users\ShopAddressesUpdateRequest;
+use Api\Request\Users\ShopAddressesCreateRequest;
+use Api\Request\Users\ShopAddressesUpdateRequest;
 use App\Shop\Service\ShopAddressesService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;

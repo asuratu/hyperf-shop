@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Shop\Request\Users;
+namespace Api\Request\Users;
 
 use Hyperf\Validation\Request\FormRequest;
 
@@ -23,7 +23,7 @@ class ShopUsersUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            
+
         ];
     }
 }

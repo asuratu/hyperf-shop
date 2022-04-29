@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Api\Controller\v1;
 
-use Api\Resource\ShopAddressCollection;
+use Api\Request\Users\ShopAddressesCreateRequest;
 use Api\Resource\ShopAddressResource;
 use Api\Service\ShopAddressesService;
 use Hyperf\Di\Annotation\Inject;
@@ -56,10 +56,10 @@ class ShopAddressesController extends MineController
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    #[PostMapping("save"), Permission("shop:addresses:save"), OperationLog]
+    #[PostMapping("save")]
     public function save(ShopAddressesCreateRequest $request): ResponseInterface
     {
-        return $this->success(['id' => $this->service->save($request->all())]);
+        return $this->success(['id' => $this->service->mySave($request->all())]);
     }
 
     /**

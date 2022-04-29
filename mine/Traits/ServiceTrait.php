@@ -137,6 +137,23 @@ trait ServiceTrait
     }
 
     /**
+     * 新增外键相关数据
+     * @param array $data
+     * @param string $foreignKey
+     * @param string|int|null $foreignId
+     * @return int
+     */
+    public function mySave(array $data, string $foreignKey = 'user_id', string|int|null $foreignId = null): int
+    {
+        if (empty($foreignId)) {
+            $foreignId = user('api')->getId();
+        }
+
+        $data[$foreignKey] = $foreignId;
+        return $this->save($data);
+    }
+
+    /**
      * 新增数据
      * @param array $data
      * @return int
