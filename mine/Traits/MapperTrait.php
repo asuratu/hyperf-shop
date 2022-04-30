@@ -19,7 +19,7 @@ use Hyperf\Database\Model\Model;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Annotation\Transaction;
 use Mine\Constants\StatusCode;
-use Mine\Exception\NormalStatusException;
+use Mine\Exception\BusinessException;
 use Mine\MineCollection;
 use Mine\MineModel;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -198,7 +198,8 @@ trait MapperTrait
         string $id = 'id',
         string $parentField = 'parent_id',
         string $children = 'children'
-    ): array {
+    ): array
+    {
         $params['_mainAdmin_tree'] = true;
         $params['_mainAdmin_tree_pid'] = $parentField;
         $data = $this->listQuerySetting($params, $isScope)->get();
@@ -350,7 +351,7 @@ trait MapperTrait
         $model = $this->model::findOrFail($id);
 
         if ($model->user_id != $userId) {
-            throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_NOT_PERMISSION), StatusCode::ERR_NOT_PERMISSION);
+            throw new BusinessException(StatusCode::ERR_NOT_PERMISSION);
         }
 
         foreach ($data as $name => $val) {

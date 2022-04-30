@@ -16,6 +16,9 @@ use Hyperf\Database\Model\Collection;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Abstracts\AbstractMapper;
 use Mine\Annotation\Transaction;
+use Mine\Constants\StatusCode;
+use Mine\Exception\BusinessException;
+use Mine\Exception\NormalStatusException;
 use Mine\MineCollection;
 use Mine\MineModel;
 use Mine\MineResponse;
@@ -230,6 +233,31 @@ trait ServiceTrait
     public function delete(string $ids): bool
     {
         return !empty($ids) && $this->mapper->delete(explode(',', $ids));
+    }
+
+    /**
+     * 单个或批量软删除当前用户的数据
+     * @param string $ids
+     * @param string $foreignKey
+     * @param string|int|null $foreignId
+     * @return bool
+     * @throws NormalStatusException
+     */
+    public function myDelete(string $ids, string $foreignKey = 'user_id', string|int|null $foreignId = null): bool
+    {
+        if (empty($ids)) {
+            return true;
+        }
+        if (empty($foreignId)) {
+            $foreignId = user('api')->getId();
+        }
+        $idArr = explode(',', $ids);
+        // 检查是否存在不是当前用户的数据
+        $check = $this->mapper->exists(function ($query) use ($idArr, $foreignKey, $foreignId) {
+            $query->whereIn('id', $idArr)->where($foreignKey, '<>', $foreignId);
+        });
+        $check && throw new BusinessException(StatusCode::ERR_NOT_PERMISSION);
+        return $this->mapper->delete($idArr);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 /**
  * This file is part of Hyperf.
  *
@@ -9,7 +10,9 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-use Hyperf\Database\Commands\ModelOption;
+
+use Hyperf\ModelCache\Handler\RedisHandler;
+
 return [
     'default' => [
         'driver' => env('DB_DRIVER', 'mysql'),
@@ -27,10 +30,10 @@ return [
             'connect_timeout' => 10.0,
             'wait_timeout' => 3.0,
             'heartbeat' => -1,
-            'max_idle_time' => (float) env('DB_MAX_IDLE_TIME', 60),
+            'max_idle_time' => (float)env('DB_MAX_IDLE_TIME', 60),
         ],
         'cache' => [
-            'handler' => \Hyperf\ModelCache\Handler\RedisHandler::class,
+            'handler' => RedisHandler::class,
             'cache_key' => 'MineAdmin:%s:m:%s:%s:%s',
             'prefix' => 'model-cache',
             'ttl' => 86400 * 7,

@@ -9,6 +9,7 @@ use Api\Resource\ShopAddressResource;
 use Api\Service\ShopAddressesService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
@@ -71,5 +72,18 @@ class ShopAddressesController extends MineController
     public function update(int $id, ShopAddressesRequest $request): ResponseInterface
     {
         return $this->service->myUpdate($id, $request->all()) ? $this->success() : $this->error();
+    }
+
+    /**
+     * 单个或批量删除数据到回收站
+     * @param String $ids
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[DeleteMapping("delete/{ids}")]
+    public function delete(string $ids): ResponseInterface
+    {
+        return $this->service->myDelete($ids) ? $this->success() : $this->error();
     }
 }

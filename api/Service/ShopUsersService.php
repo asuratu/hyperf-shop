@@ -17,6 +17,7 @@ use Mine\Constants\StatusCode;
 use Mine\Event\ApiUserLoginAfter;
 use Mine\Event\UserLoginBefore;
 use Mine\Event\UserLogout;
+use Mine\Exception\BusinessException;
 use Mine\Exception\MineException;
 use Mine\Exception\NormalStatusException;
 use Mine\Exception\UserBanException;
@@ -68,7 +69,7 @@ class ShopUsersService extends AbstractService
             $token = user('api')->getToken($userinfoArr);
         } catch (Exception $e) {
             console()->error($e->getMessage());
-            throw new NormalStatusException(t('jwt.unknown_error'));
+            throw new BusinessException(StatusCode::ERR_SERVER);
         }
         $userLoginAfter->token = $token;
         // 调度登录之后的事件
@@ -88,7 +89,7 @@ class ShopUsersService extends AbstractService
     public function saveUser(array $data): Model
     {
         if ($this->mapper->existsByUsername($data['username'])) {
-            throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_EXIST), StatusCode::ERR_USER_EXIST);
+            throw new BusinessException(StatusCode::ERR_USER_EXIST);
         }
         // 登录之前的事件
         $this->evDispatcher->dispatch(new UserLoginBefore($data));
@@ -134,20 +135,20 @@ class ShopUsersService extends AbstractService
                 $userLoginAfter->loginStatus = false;
                 $userLoginAfter->message = t('jwt.password_error');
                 $this->evDispatcher->dispatch($userLoginAfter);
-                throw new NormalStatusException;
+                throw new BusinessException;
             }
         } catch (Exception $e) {
             if ($e instanceof ModelNotFoundException) {
-                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_ABSENT), StatusCode::ERR_USER_ABSENT);
+                throw new BusinessException(StatusCode::ERR_USER_ABSENT);
             }
-            if ($e instanceof NormalStatusException) {
-                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_PASSWORD), StatusCode::ERR_USER_PASSWORD);
+            if ($e instanceof BusinessException) {
+                throw new BusinessException(StatusCode::ERR_USER_PASSWORD);
             }
             if ($e instanceof UserBanException) {
-                throw new NormalStatusException(StatusCode::getMessage(StatusCode::ERR_USER_DISABLE), StatusCode::ERR_USER_DISABLE);
+                throw new BusinessException(StatusCode::ERR_USER_DISABLE);
             }
             console()->error($e->getMessage());
-            throw new NormalStatusException(t('jwt.unknown_error'));
+            throw new BusinessException(StatusCode::ERR_SERVER);
         }
     }
 

@@ -9,13 +9,15 @@
  * @Link   https://gitee.com/xmo/MineAdmin
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Mine\Traits;
 
 use Hyperf\Di\Annotation\Inject;
 use Mine\MineRequest;
 use Mine\MineResponse;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 
 trait ControllerTrait
@@ -36,17 +38,17 @@ trait ControllerTrait
 
     /**
      * @param string|array|object $msgOrData
-     * @param array $data
+     * @param array|object $data
      * @param int $code
      * @return ResponseInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function success(string|array|object $msgOrData = '', array|object $data = [], int $code = 200): ResponseInterface
     {
         if (is_string($msgOrData) || is_null($msgOrData)) {
             return $this->response->success($msgOrData, $data, $code);
-        } else if (is_array($msgOrData) || is_object($msgOrData)) {
+        } elseif (is_array($msgOrData) || is_object($msgOrData)) {
             return $this->response->success(null, $msgOrData, $code);
         } else {
             return $this->response->success(null, $data, $code);
@@ -58,8 +60,8 @@ trait ControllerTrait
      * @param int $code
      * @param array $data
      * @return ResponseInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function error(string $message = '', int $code = 500, array $data = []): ResponseInterface
     {

@@ -1,54 +1,73 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of Hyperf.
- *
- * @link     https://www.hyperf.io
- * @document https://hyperf.wiki
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
- */
 
 namespace Mine\Exception\Handler;
 
-use Hyperf\Contract\StdoutLoggerInterface;
+use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
-use Hyperf\Logger\Logger;
-use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\Codec\Json;
+use Hyperf\Validation\ValidationException;
+use Mine\Constants\StatusCode;
+use Mine\Exception\BusinessException;
+use Mine\Exception\NoPermissionException;
+use Mine\Exception\NormalStatusException;
+use Mine\Exception\TokenException;
+use Mine\Helper\MineCode;
+use Mine\Traits\ControllerTrait;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
+/**
+ * 应用异常处理中心
+ */
 class AppExceptionHandler extends ExceptionHandler
 {
-    protected Logger $logger;
+    use ControllerTrait;
 
-    /**
-     * @var StdoutLoggerInterface
-     */
-    protected StdoutLoggerInterface $console;
-
-    public function __construct()
+    public function handle(Throwable $throwable, ResponseInterface $response)
     {
-        $this->console = console();
-        $this->logger = container()->get(LoggerFactory::class)->get('mineAdmin');
-    }
-
-    public function handle(Throwable $throwable, ResponseInterface $response): ResponseInterface
-    {
-        $this->console->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
-        $this->console->error($throwable->getTraceAsString());
-        $this->logger->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
         $format = [
             'success' => false,
-            'code' => 500,
-            'message' => $throwable->getMessage()
+            'message' => $throwable->getMessage(),
+            'code' => $throwable->getCode(),
         ];
+
+        // 阻止异常冒泡
+        $this->stopPropagation();
+
+        switch ($throwable) {
+            case $throwable instanceof TokenException:
+                $format['code'] = MineCode::TOKEN_EXPIRED;
+                $status = 401;
+                break;
+            case $throwable instanceof NoPermissionException:
+                $format['code'] = MineCode::NO_PERMISSION;
+                $status = 403;
+                break;
+            case $throwable instanceof ModelNotFoundException:
+                $format['code'] = StatusCode::ERR_MAINTAIN;
+                $status = 404;
+                break;
+            case $throwable instanceof ValidationException:
+                $format['message'] = $throwable->validator->errors()->first();
+                $format['code'] = MineCode::VALIDATE_FAILED;
+                $status = 200;
+                break;
+            case $throwable instanceof BusinessException:
+            case $throwable instanceof NormalStatusException:
+//                logger('Exception log')->debug($throwable->getMessage());
+                $status = 200;
+                break;
+            default:
+                $format['message'] = '服务器错误 ' . $throwable->getMessage() . ':: FILE:' . $throwable->getFile() . ':: LINE: ' . $throwable->getLine();
+                $status = 500;
+        }
+
         return $response->withHeader('Server', 'MineAdmin')
             ->withAddedHeader('content-type', 'application/json; charset=utf-8')
-            ->withStatus(500)->withBody(new SwooleStream(Json::encode($format)));
+            ->withStatus($status)->withBody(new SwooleStream(Json::encode($format)));
     }
 
     public function isValid(Throwable $throwable): bool

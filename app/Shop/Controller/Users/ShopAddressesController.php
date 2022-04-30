@@ -44,7 +44,6 @@ class ShopAddressesController extends MineController
     #[GetMapping("index"), Permission("shop:addresses:index")]
     public function index(): ResponseInterface
     {
-        dump(22);
         return $this->success($this->service->getPageList($this->request->all()));
     }
 
