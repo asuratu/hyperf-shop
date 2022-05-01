@@ -9,9 +9,9 @@
  * @Link   https://gitee.com/xmo/MineAdmin
  */
 
-use Hyperf\Database\Schema\Schema;
-use Hyperf\Database\Schema\Blueprint;
 use Hyperf\Database\Migrations\Migration;
+use Hyperf\Database\Schema\Blueprint;
+use Hyperf\Database\Schema\Schema;
 
 class CreateShopProductsTable extends Migration
 {
@@ -22,14 +22,19 @@ class CreateShopProductsTable extends Migration
     {
         Schema::create('shop_products', function (Blueprint $table) {
             $table->engine = 'Innodb';
-            $table->comment('表注释');
+            $table->comment('商品表');
             $table->addColumn('bigInteger', 'id', ['unsigned' => true, 'comment' => '主键']);
-            $table->addColumn('bigInteger', 'created_by', ['comment' => '创建者'])->nullable();
-            $table->addColumn('bigInteger', 'updated_by', ['comment' => '更新者'])->nullable();
+            $table->string('title')->comment('商品名称');
+            $table->text('description')->comment('商品详情');
+            $table->string('image')->comment('商品封面图片文件路径');
+            $table->tinyInteger('on_sale')->default(1)->comment('商品是否正在售卖');
+            $table->float('rating')->default(5)->comment('商品平均评分');
+            $table->unsignedInteger('sold_count')->default(0)->comment('销量');
+            $table->unsignedInteger('review_count')->default(0)->comment('评价数量');
+            $table->decimal('price')->comment('SKU 最低价格');
             $table->addColumn('timestamp', 'created_at', ['precision' => 0, 'comment' => '创建时间'])->nullable();
             $table->addColumn('timestamp', 'updated_at', ['precision' => 0, 'comment' => '更新时间'])->nullable();
             $table->addColumn('timestamp', 'deleted_at', ['precision' => 0, 'comment' => '删除时间'])->nullable();
-            $table->addColumn('string', 'remark', ['length' => 255, 'comment' => '备注'])->nullable();
             $table->primary('id');
         });
     }

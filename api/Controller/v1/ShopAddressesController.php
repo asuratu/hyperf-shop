@@ -26,10 +26,6 @@ use Psr\Http\Message\ResponseInterface;
 #[Controller(prefix: "api/v1/addresses"), Auth('api')]
 class ShopAddressesController extends MineController
 {
-    /**
-     * 业务处理服务
-     * ShopAddressesService
-     */
     #[Inject]
     protected ShopAddressesService $service;
 

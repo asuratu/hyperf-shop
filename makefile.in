@@ -1,47 +1,36 @@
 php := $(shell which php)
 composer := $(shell which composer)
+git := $(shell which git)
 folders = storage
 step ?= 1
 
-.PHONY: all clean publish cache link migrate rollback ide
+.PHONY: all clean publish cache link migrate rollback patch model ide
 .IGNORE: all
 
 all:
-	@$(composer) update
-	@$(MAKE) publish
-	@$(MAKE) link
-	@$(MAKE) ide
-	@$(php) artisan horizon:terminate
+	@$(composer) dump-autoload -o
+	@$(MAKE) watch
 
-clean:
-	@$(php) artisan config:clear
-	@$(php) artisan cache:clear
-	@$(php) artisan route:clear
-	@$(php) artisan telescope:prune
-	@$(php) artisan horizon:terminate
-	@$(php) artisan view:clear
+watch:
+	@$(php) bin/hyperf.php server:watch
 
-publish:
-	@$(php) artisan horizon:publish
-	@$(php) artisan telescope:publish
-	@$(php) artisan vendor:publish --tag=laravel-admin-assets --force
-	@$(php) artisan vendor:publish --tag=laravel-admin-lang --force
+# 生成指定模块的迁移文件，参数：（m）模块 （t）表名
+migrate-gen:
+	@$(php) bin/hyperf.php mine:migrate-gen --module=$(m) $(t)
 
-cache:
-	@$(php) artisan config:cache
-	@$(php) artisan route:cache
+# 执行指定模块的迁移表，（m）模块
+migrate-run:
+	@$(php) bin/hyperf.php mine:migrate-run $(m)
 
-link:
-	@$(php) artisan storage:link -q
+# 指定模块回滚迁移，（m）模块目录名，（s）回滚的步数
+migrate-rollback:
+	@$(php) bin/hyperf.php migrate:rollback --step=$(s) --path=app/$(m)/Database/Migrations
 
-migrate:
-	@$(php) artisan migrate
+# 生成迁移补丁，（t）表名，（v）批次
+migrate-patch:
+	@$(php) bin/hyperf.php gen:migration alter_$(t)_table_v$(v) --table=$(t)
 
-rollback:
-	php artisan migrate:rollback --step=$(step)
+# 指定模块和表生成model，（t）表名，（m）模块目录
+model-gen:
+	@$(php) bin/hyperf.php mine:model-gen --module=$(m) --table=$(t)
 
-ide:
-	@$(php) artisan ide-helper:eloquent
-	@$(php) artisan ide-helper:generate
-	@$(php) artisan ide-helper:meta
-	@$(php) artisan ide-helper:models -W -R
