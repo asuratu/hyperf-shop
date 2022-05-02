@@ -112,6 +112,16 @@ trait MapperTrait
             }
         }
 
+        // 排序
+        if ($params['_order'] ?? false) {
+            $order = $params['_order'];
+            if (is_array($params['_order'])) {
+                foreach ($order as $key => $item) {
+                    $query->orderBy($key, $item);
+                }
+            }
+        }
+
         return $query;
     }
 
@@ -141,6 +151,7 @@ trait MapperTrait
             $pageName,
             $params[$pageName] ?? 1
         );
+
         return $this->setPaginate($paginate);
     }
 

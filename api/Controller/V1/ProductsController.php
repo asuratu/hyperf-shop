@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Api\Controller\V1;
 
-use App\Shop\Service\ShopProductsService;
+use Api\Resource\ShopProductsResource;
+use Api\Service\ShopProductsService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
-use Mine\Annotation\Permission;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -33,9 +33,11 @@ class ProductsController extends BaseController
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    #[GetMapping("index"), Permission("shop:products:index")]
+    #[GetMapping("index")]
     public function index(): ResponseInterface
     {
-        return $this->success($this->service->getPageList($this->request->all()));
+        $list = $this->service->getPageList($this->request->all(), false);
+        $list['items'] = ShopProductsResource::collection($list['items']);
+        return $this->success($list);
     }
 }

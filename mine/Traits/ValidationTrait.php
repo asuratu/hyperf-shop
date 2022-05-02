@@ -23,7 +23,7 @@ trait ValidationTrait
      * @param $rules
      * @param $message
      */
-    public function verifyParams($data, $rules, $message)
+    public function verifyParams($data, $rules, $message): void
     {
         $validator = $this->validationFactory->make($data, $rules, $message);
         if ($validator->fails()) {

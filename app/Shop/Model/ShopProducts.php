@@ -26,6 +26,10 @@ class ShopProducts extends MineModel
 {
     use SoftDeletes;
 
+    // 商品的销售状态 0下架 1上架
+    const OFF_SALE = 0;
+    const ON_SALE = 1;
+
     public $incrementing = false;
     /**
      * The table associated with the model.

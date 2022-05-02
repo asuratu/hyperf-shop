@@ -42,7 +42,7 @@ seeder-gen:
 seeder-run:
 	@$(php) bin/hyperf.php mine:seeder-run $(m)
 
-# 运行某一个填充命令，（s）迁移文件名，（m）模块目录
+# 运行某一个填充命令，（s）迁移文件名，（m）模目录
 seeder:
 	@$(php) bin/hyperf.php db:seed --path=app/$(m)/Database/Seeders/$(s).php
 
