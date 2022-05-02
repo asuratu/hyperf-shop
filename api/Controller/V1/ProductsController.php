@@ -40,4 +40,17 @@ class ProductsController extends BaseController
         $list['items'] = ShopProductsResource::collection($list['items']);
         return $this->success($list);
     }
+
+    /**
+     * 读取数据
+     * @param int $id
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("read/{id}")]
+    public function read(int $id): ResponseInterface
+    {
+        return $this->success(new ShopProductsResource($this->service->read($id)));
+    }
 }

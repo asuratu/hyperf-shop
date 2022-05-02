@@ -275,7 +275,7 @@ trait MapperTrait
      */
     public function read(int $id): ?MineModel
     {
-        return ($model = $this->model::find($id)) ? $model : null;
+        return ($model = $this->model::findOrFail($id)) ? $model : null;
     }
 
     /**
