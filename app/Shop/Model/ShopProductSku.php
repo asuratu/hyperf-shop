@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shop\Model;
 
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\BelongsTo;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\MineModel;
 
@@ -44,8 +45,8 @@ class ShopProductSku extends MineModel
      */
     protected $casts = ['id' => 'integer', 'price' => 'decimal:2', 'stock' => 'integer', 'product_id' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
 
-    public function product()
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ShopProducts::class);
     }
 }

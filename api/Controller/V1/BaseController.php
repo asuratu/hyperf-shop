@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Controller\v1;
+namespace Api\Controller\V1;
 
 use Mine\MineApi;
 use Mine\Traits\ValidationTrait;

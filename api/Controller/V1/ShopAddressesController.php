@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Api\Controller\v1;
+namespace Api\Controller\V1;
 
 use Api\Request\Users\ShopAddressesRequest;
 use Api\Resource\ShopAddressResource;
