@@ -210,4 +210,18 @@ class ShopUsersService extends AbstractService
 //        }
 //        return $this->mapper->update($id, $this->handleData($data));
 //    }
+
+
+    /**
+     * 检查用户是否收藏过某商品
+     * @param ShopUser $user
+     * @param int $productId
+     * @return bool
+     */
+    public function existsFavoriteProduct(ShopUser $user, int $productId): bool
+    {
+        return $user->favoriteProducts()
+            ->where('shop_products.id', $productId)
+            ->exists();
+    }
 }

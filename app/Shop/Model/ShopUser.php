@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Shop\Model;
 
+use Api\Resource\ShopProductsResource;
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\BelongsToMany;
 use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\MineModel;
@@ -30,7 +32,9 @@ class ShopUser extends MineModel
 
     public const USER_NORMAL = 0;
     public const USER_BAN = 1;
+    
     public $incrementing = false;
+
     /**
      * The table associated with the model.
      *
@@ -74,5 +78,12 @@ class ShopUser extends MineModel
     public function addresses(): HasMany
     {
         return $this->hasMany(ShopAddresses::class);
+    }
+
+    public function favoriteProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(ShopProducts::class, 'shop_user_products', 'user_id', 'product_id')
+            ->withTimestamps()
+            ->orderBy('shop_user_products.created_at', 'desc');
     }
 }

@@ -3,7 +3,6 @@
 declare(strict_types = 1);
 namespace App\System\Service;
 
-
 use App\System\Mapper\SystemRoleMapper;
 use Mine\Abstracts\AbstractService;
 use Mine\Exception\NormalStatusException;

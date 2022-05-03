@@ -57,4 +57,19 @@ class ShopUsersMapper extends AbstractMapper
         return $this->model::query()->where('username', $username)->firstOrFail();
     }
 
+    /**
+     * @Title: 获取当前用户实例
+     * @return ShopUser
+     */
+    public function getUser(): ShopUser
+    {
+        $user = $this->model::findOrFail((int)user('api')->getId());
+
+        if (!$user instanceof ShopUser) {
+            throw new ModelNotFoundException();
+        }
+
+        return $user;
+    }
+
 }

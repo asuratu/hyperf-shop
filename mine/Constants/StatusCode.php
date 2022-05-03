@@ -120,4 +120,9 @@ class StatusCode extends AbstractConstants
      * @Message("验证异常！")
      */
     public const ERR_VALIDATION = 3002;
+
+    /**
+     * @Message("重复操作！")
+     */
+    public const ERR_REPEAT = 3003;
 }

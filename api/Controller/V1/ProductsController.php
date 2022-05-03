@@ -8,7 +8,10 @@ use Api\Resource\ShopProductsResource;
 use Api\Service\ShopProductsService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
+use Hyperf\HttpServer\Annotation\PostMapping;
+use Mine\Annotation\Auth;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -52,5 +55,33 @@ class ProductsController extends BaseController
     public function read(int $id): ResponseInterface
     {
         return $this->success(new ShopProductsResource($this->service->read($id)));
+    }
+
+    /**
+     * 收藏商品
+     * @param int $id
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[DeleteMapping("{id}/favorite"), Auth('api')]
+    public function disfavor(int $id): ResponseInterface
+    {
+        $this->service->disfavor($id);
+        return $this->success();
+    }
+
+    /**
+     * 收藏商品
+     * @param int $id
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[PostMapping("{id}/favorite"), Auth('api')]
+    public function favor(int $id): ResponseInterface
+    {
+        $this->service->favor($id);
+        return $this->success();
     }
 }
