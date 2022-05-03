@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Api\Mapper;
 
 use App\Shop\Model\ShopProducts;
+use App\Shop\Model\ShopUser;
 use Hyperf\Database\Model\Builder;
 use Mine\Abstracts\AbstractMapper;
 
@@ -48,5 +49,19 @@ class ShopProductsMapper extends AbstractMapper
         }
 
         return $builder;
+    }
+
+    /**
+     * 用户收藏的商品列表
+     * @param ShopUser $shopUser
+     * @return array
+     */
+    public function favoriteProducts(ShopUser $shopUser): array
+    {
+        $products = $shopUser->favoriteProducts()
+            ->where('on_sale', ShopProducts::ON_SALE)
+            ->paginate();
+
+        return $this->setPaginate($products);
     }
 }

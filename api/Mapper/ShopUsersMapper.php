@@ -72,4 +72,5 @@ class ShopUsersMapper extends AbstractMapper
         return $user;
     }
 
+
 }

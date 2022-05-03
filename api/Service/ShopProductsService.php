@@ -6,8 +6,6 @@ namespace Api\Service;
 
 use Api\Mapper\ShopProductsMapper;
 use Api\Mapper\ShopUsersMapper;
-use App\Shop\Model\ShopUser;
-use Hyperf\Database\Model\ModelNotFoundException;
 use Mine\Abstracts\AbstractService;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
@@ -81,5 +79,15 @@ class ShopProductsService extends AbstractService
         }
 
         $user->favoriteProducts()->detach($product);
+    }
+
+    /**
+     * 收藏商品列表
+     * @return array
+     */
+    public function favorites(): array
+    {
+        $user = $this->userMapper->getUser();
+        return $this->mapper->favoriteProducts($user);
     }
 }

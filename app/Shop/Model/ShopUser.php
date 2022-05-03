@@ -32,7 +32,7 @@ class ShopUser extends MineModel
 
     public const USER_NORMAL = 0;
     public const USER_BAN = 1;
-    
+
     public $incrementing = false;
 
     /**

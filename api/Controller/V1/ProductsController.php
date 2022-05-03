@@ -72,6 +72,20 @@ class ProductsController extends BaseController
     }
 
     /**
+     * 收藏商品列表
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("favorites"), Auth('api')]
+    public function favorites(): ResponseInterface
+    {
+        $list = $this->service->favorites();
+        $list['items'] = ShopProductsResource::collection($list['items']);
+        return $this->success($list);
+    }
+
+    /**
      * 收藏商品
      * @param int $id
      * @return ResponseInterface
