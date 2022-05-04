@@ -90,4 +90,26 @@ class ShopProductsService extends AbstractService
         $user = $this->userMapper->getUser();
         return $this->mapper->favoriteProducts($user);
     }
+
+    /**
+     * 添加商品到购物车
+     * @param $data
+     * @return bool
+     */
+    public function addCart($data): bool
+    {
+        $user = $this->userMapper->getUser();
+
+        if ($cart = $this->mapper->cartItem($user, $data['sku_id'])) {
+            // 如果存在则直接叠加商品数量
+            // 先判库存
+            if ($cart->amount + $data['amount'] > $cart->productSku->stock) {
+                throw new BusinessException(StatusCode::VALIDATE_FAILED, '库存不足');
+            }
+            return $this->mapper->updateCartItem($cart, $data['amount']);
+        } else {
+            // 不存在记录, 则创建一条购物车记录
+            return $this->mapper->createCartItem($user, $data['sku_id'], $data['amount']);
+        }
+    }
 }

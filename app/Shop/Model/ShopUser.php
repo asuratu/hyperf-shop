@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shop\Model;
 
-use Api\Resource\ShopProductsResource;
 use Carbon\Carbon;
 use Hyperf\Database\Model\Relations\BelongsToMany;
 use Hyperf\Database\Model\Relations\HasMany;
@@ -46,7 +45,7 @@ class ShopUser extends MineModel
      *
      * @var array
      */
-    protected $fillable = ['id', 'username', 'password', 'phone', 'email', 'avatar', 'status', 'login_ip', 'login_time', 'created_at', 'updated_at', 'deleted_at', 'remark'];
+    protected $fillable = ['username', 'password', 'phone', 'email', 'avatar', 'status', 'login_ip', 'login_time', 'created_at', 'updated_at', 'deleted_at', 'remark'];
     /**
      * The attributes that should be cast to native types.
      *
@@ -85,5 +84,10 @@ class ShopUser extends MineModel
         return $this->belongsToMany(ShopProducts::class, 'shop_user_products', 'user_id', 'product_id')
             ->withTimestamps()
             ->orderBy('shop_user_products.created_at', 'desc');
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(ShopCartItem::class, 'user_id', 'id');
     }
 }

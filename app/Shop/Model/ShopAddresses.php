@@ -40,7 +40,7 @@ class ShopAddresses extends MineModel
      *
      * @var array
      */
-    protected $fillable = ['id', 'user_id', 'province', 'city', 'district', 'address', 'zip', 'contact_name', 'contact_phone', 'last_used_at', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['user_id', 'province', 'city', 'district', 'address', 'zip', 'contact_name', 'contact_phone', 'last_used_at'];
     /**
      * The attributes that should be cast to native types.
      *

@@ -56,19 +56,14 @@ class StatusCode extends AbstractConstants
 
 
     /**
-     * @Message("令牌过期！")
+     * @Message("令牌过期、不存在！")
      */
-    public const ERR_EXPIRE_TOKEN = 1002;
+    public const TOKEN_EXPIRED = 1001;
 
     /**
-     * @Message("令牌无效！")
+     * @Message("数据验证失败！")
      */
-    public const ERR_INVALID_TOKEN = 1003;
-
-    /**
-     * @Message("令牌不存在！")
-     */
-    public const ERR_NOT_EXIST_TOKEN = 1004;
+    public const VALIDATE_FAILED = 1002;
 
     /**
      * @Message("验证码错误！")

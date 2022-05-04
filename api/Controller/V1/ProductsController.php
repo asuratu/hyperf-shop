@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Api\Controller\V1;
 
-use Api\Resource\ShopProductsResource;
+use Api\Request\Product\AddCartRequest;
+use Api\Resource\ShopProductsDetailResource;
 use Api\Service\ShopProductsService;
+use Dotenv\Exception\ValidationException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -40,7 +42,7 @@ class ProductsController extends BaseController
     public function index(): ResponseInterface
     {
         $list = $this->service->getPageList($this->request->all(), false);
-        $list['items'] = ShopProductsResource::collection($list['items']);
+        $list['items'] = ShopProductsDetailResource::collection($list['items']);
         return $this->success($list);
     }
 
@@ -54,11 +56,11 @@ class ProductsController extends BaseController
     #[GetMapping("read/{id}")]
     public function read(int $id): ResponseInterface
     {
-        return $this->success(new ShopProductsResource($this->service->read($id)));
+        return $this->success(new ShopProductsDetailResource($this->service->read($id)));
     }
 
     /**
-     * 收藏商品
+     * 取消收藏商品
      * @param int $id
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
@@ -81,8 +83,22 @@ class ProductsController extends BaseController
     public function favorites(): ResponseInterface
     {
         $list = $this->service->favorites();
-        $list['items'] = ShopProductsResource::collection($list['items']);
+        $list['items'] = ShopProductsDetailResource::collection($list['items']);
         return $this->success($list);
+    }
+
+    /**
+     * 添加商品到购物车
+     * @param AddCartRequest $request
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws ValidationException
+     */
+    #[PostMapping("cart"), Auth('api')]
+    public function addCart(AddCartRequest $request): ResponseInterface
+    {
+        $this->service->addCart($request->validated());
+        return $this->success();
     }
 
     /**

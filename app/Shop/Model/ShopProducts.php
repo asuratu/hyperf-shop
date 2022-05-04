@@ -1,9 +1,10 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
 
 namespace App\Shop\Model;
 
+use Carbon\Carbon;
 use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\MineModel;
@@ -18,8 +19,8 @@ use Mine\MineModel;
  * @property int $sold_count 销量
  * @property int $review_count 评价数量
  * @property string $price SKU 最低价格
- * @property \Carbon\Carbon $created_at 创建时间
- * @property \Carbon\Carbon $updated_at 更新时间
+ * @property Carbon $created_at 创建时间
+ * @property Carbon $updated_at 更新时间
  * @property string $deleted_at 删除时间
  */
 class ShopProducts extends MineModel
