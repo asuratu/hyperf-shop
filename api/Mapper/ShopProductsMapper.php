@@ -94,18 +94,4 @@ class ShopProductsMapper extends AbstractMapper
             'amount' => $cart->amount + $amount,
         ]);
     }
-
-    /**
-     * 用户收藏的商品列表
-     * @param ShopUser $shopUser
-     * @return array
-     */
-    public function favoriteProducts(ShopUser $shopUser): array
-    {
-        $products = $shopUser->favoriteProducts()
-            ->where('on_sale', ShopProducts::ON_SALE)
-            ->paginate();
-
-        return $this->setPaginate($products);
-    }
 }

@@ -83,12 +83,12 @@ class ShopProductsService extends AbstractService
 
     /**
      * 收藏商品列表
+     * @param $data
      * @return array
      */
-    public function favorites(): array
+    public function favorites($data): array
     {
-        $user = $this->userMapper->getUser();
-        return $this->mapper->favoriteProducts($user);
+        return $this->userMapper->favoriteProducts($data);
     }
 
     /**
@@ -112,4 +112,25 @@ class ShopProductsService extends AbstractService
             return $this->mapper->createCartItem($user, $data['sku_id'], $data['amount']);
         }
     }
+
+    /**
+     * 购物车中移除商品
+     * @param string $ids
+     * @return void
+     */
+    public function remove(string $ids): void
+    {
+        $this->userMapper->removeCartItem(explode(',', $ids));
+    }
+
+    /**
+     * 购物车列表
+     * @param array $data
+     * @return array
+     */
+    public function cartList(array $data): array
+    {
+        return $this->userMapper->cartList($data);
+    }
+
 }

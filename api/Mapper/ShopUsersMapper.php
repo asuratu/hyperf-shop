@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Api\Mapper;
 
+use App\Shop\Model\ShopProducts;
 use App\Shop\Model\ShopUser;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
@@ -58,7 +59,34 @@ class ShopUsersMapper extends AbstractMapper
     }
 
     /**
-     * @Title: 获取当前用户实例
+     * 用户的购物车列表
+     * @param $data
+     * @return array
+     */
+    public function cartList($data): array
+    {
+        $user = $this->getUser();
+
+        $cartItems = $user->cartItems()
+            // 只查询当前 on_sale 为 1 的商品
+            ->whereHas('productSku', function ($query) {
+                $query->whereHas('product', function ($query) {
+                    $query->where('on_sale', ShopProducts::ON_SALE);
+                });
+            })
+            ->with('productSku')
+            ->paginate(
+                (int)$data['pageSize'] ?? $this->model::PAGE_SIZE,
+                ['*'],
+                'page',
+                (int)$data['page'] ?? 1
+            );
+
+        return $this->setPaginate($cartItems);
+    }
+
+    /**
+     * 获取当前用户实例
      * @return ShopUser
      */
     public function getUser(): ShopUser
@@ -72,5 +100,38 @@ class ShopUsersMapper extends AbstractMapper
         return $user;
     }
 
+    /**
+     * 用户收藏的商品列表
+     * @param array $skuIdArr
+     * @return void
+     */
+    public function removeCartItem(array $skuIdArr): void
+    {
+        $user = $this->getUser();
+        $user->cartItems()
+            ->whereIn('product_sku_id', $skuIdArr)
+            ->delete();
+    }
 
+    /**
+     * 用户收藏的商品列表
+     * @param $data
+     * @return array
+     */
+    public function favoriteProducts($data): array
+    {
+        $user = $this->getUser();
+
+        $products = $user->favoriteProducts()
+            ->where('on_sale', ShopProducts::ON_SALE)
+            ->with('skus')
+            ->paginate(
+                (int)$data['pageSize'] ?? $this->model::PAGE_SIZE,
+                ['*'],
+                'page',
+                (int)$data['page'] ?? 1
+            );
+
+        return $this->setPaginate($products);
+    }
 }

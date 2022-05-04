@@ -82,9 +82,39 @@ class ProductsController extends BaseController
     #[GetMapping("favorites"), Auth('api')]
     public function favorites(): ResponseInterface
     {
-        $list = $this->service->favorites();
+        $list = $this->service->favorites($this->request->all());
         $list['items'] = ShopProductsDetailResource::collection($list['items']);
         return $this->success($list);
+    }
+
+    /**
+     * 购物车列表
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws ValidationException
+     */
+    #[GetMapping("cart"), Auth('api')]
+    public function cartList(): ResponseInterface
+    {
+        $list = $this->service->cartList($this->request->all());
+        return $this->success($list);
+
+
+        return $this->success();
+    }
+
+    /**
+     * 移除购物车中商品
+     * @param string $ids
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[DeleteMapping("cart/{ids}"), Auth('api')]
+    public function remove(string $ids): ResponseInterface
+    {
+        $this->service->remove($ids);
+        return $this->success();
     }
 
     /**
