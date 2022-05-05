@@ -98,9 +98,6 @@ class ProductsController extends BaseController
     {
         $list = $this->service->cartList($this->request->all());
         return $this->success($list);
-
-
-        return $this->success();
     }
 
     /**
