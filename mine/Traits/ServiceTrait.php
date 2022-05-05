@@ -35,21 +35,6 @@ trait ServiceTrait
     public $mapper;
 
     /**
-     * 获取列表数据
-     * @param array|null $params
-     * @param bool $isScope
-     * @return array
-     */
-    public function getList(?array $params = null, bool $isScope = true): array
-    {
-        if ($params['select'] ?? null) {
-            $params['select'] = explode(',', $params['select']);
-        }
-        $params['recycle'] = false;
-        return $this->mapper->getList($params, $isScope);
-    }
-
-    /**
      * 从回收站过去列表数据
      * @param array|null $params
      * @param bool $isScope
@@ -65,17 +50,18 @@ trait ServiceTrait
     }
 
     /**
-     * 获取列表数据（带分页）
+     * 获取列表数据
      * @param array|null $params
      * @param bool $isScope
      * @return array
      */
-    public function getPageList(?array $params = null, bool $isScope = true): array
+    public function getList(?array $params = null, bool $isScope = true): array
     {
         if ($params['select'] ?? null) {
             $params['select'] = explode(',', $params['select']);
         }
-        return $this->mapper->getPageList($params, $isScope);
+        $params['recycle'] = false;
+        return $this->mapper->getList($params, $isScope);
     }
 
     /**
@@ -110,18 +96,18 @@ trait ServiceTrait
     }
 
     /**
-     * 获取树列表
+     * 获取列表数据（带分页）
      * @param array|null $params
      * @param bool $isScope
      * @return array
      */
-    public function getTreeList(?array $params = null, bool $isScope = true): array
+    public function getPageList(?array $params = null, bool $isScope = true): array
     {
         if ($params['select'] ?? null) {
             $params['select'] = explode(',', $params['select']);
         }
-        $params['recycle'] = false;
-        return $this->mapper->getTreeList($params, $isScope);
+
+        return $this->mapper->getPageList($params, $isScope);
     }
 
     /**
@@ -136,6 +122,21 @@ trait ServiceTrait
             $params['select'] = explode(',', $params['select']);
         }
         $params['recycle'] = true;
+        return $this->mapper->getTreeList($params, $isScope);
+    }
+
+    /**
+     * 获取树列表
+     * @param array|null $params
+     * @param bool $isScope
+     * @return array
+     */
+    public function getTreeList(?array $params = null, bool $isScope = true): array
+    {
+        if ($params['select'] ?? null) {
+            $params['select'] = explode(',', $params['select']);
+        }
+        $params['recycle'] = false;
         return $this->mapper->getTreeList($params, $isScope);
     }
 
@@ -226,16 +227,6 @@ trait ServiceTrait
     }
 
     /**
-     * 单个或批量软删除数据
-     * @param string $ids
-     * @return bool
-     */
-    public function delete(string $ids): bool
-    {
-        return !empty($ids) && $this->mapper->delete(explode(',', $ids));
-    }
-
-    /**
      * 单个或批量软删除当前用户的数据
      * @param string $ids
      * @param string $foreignKey
@@ -258,6 +249,16 @@ trait ServiceTrait
         });
         $check && throw new BusinessException(StatusCode::ERR_NOT_PERMISSION);
         return $this->mapper->delete($idArr);
+    }
+
+    /**
+     * 单个或批量软删除数据
+     * @param string $ids
+     * @return bool
+     */
+    public function delete(string $ids): bool
+    {
+        return !empty($ids) && $this->mapper->delete(explode(',', $ids));
     }
 
     /**
@@ -315,28 +316,6 @@ trait ServiceTrait
     }
 
     /**
-     * 单个或批量禁用数据
-     * @param string $ids
-     * @param string $field
-     * @return bool
-     */
-    public function disable(string $ids, string $field = 'status'): bool
-    {
-        return !empty($ids) && $this->mapper->disable(explode(',', $ids), $field);
-    }
-
-    /**
-     * 单个或批量启用数据
-     * @param string $ids
-     * @param string $field
-     * @return bool
-     */
-    public function enable(string $ids, string $field = 'status'): bool
-    {
-        return !empty($ids) && $this->mapper->enable(explode(',', $ids), $field);
-    }
-
-    /**
      * 修改数据状态
      * @param int $id
      * @param string $value
@@ -353,6 +332,28 @@ trait ServiceTrait
         } else {
             return false;
         }
+    }
+
+    /**
+     * 单个或批量启用数据
+     * @param string $ids
+     * @param string $field
+     * @return bool
+     */
+    public function enable(string $ids, string $field = 'status'): bool
+    {
+        return !empty($ids) && $this->mapper->enable(explode(',', $ids), $field);
+    }
+
+    /**
+     * 单个或批量禁用数据
+     * @param string $ids
+     * @param string $field
+     * @return bool
+     */
+    public function disable(string $ids, string $field = 'status'): bool
+    {
+        return !empty($ids) && $this->mapper->disable(explode(',', $ids), $field);
     }
 
     /**
