@@ -10,14 +10,17 @@
  */
 
 declare(strict_types=1);
+
 namespace Mine\Aspect;
 
 use Hyperf\Di\Annotation\Aspect;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
-use Mine\Helper\LoginUser;
 use Mine\MineModel;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Throwable;
 
 /**
  * Class SaveAspect
@@ -34,11 +37,11 @@ class SaveAspect extends AbstractAspect
      * @param ProceedingJoinPoint $proceedingJoinPoint
      * @return mixed
      * @throws Exception
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @throws \Exception
      */
-    public function process(ProceedingJoinPoint $proceedingJoinPoint)
+    public function process(ProceedingJoinPoint $proceedingJoinPoint): mixed
     {
         $instance = $proceedingJoinPoint->getInstance();
 
@@ -60,8 +63,10 @@ class SaveAspect extends AbstractAspect
                     $instance->updated_by = $user->getId();
                 }
 
-            } catch (\Throwable $e) {}
+            } catch (Throwable $e) {
+            }
         }
+
         // 生成ID
         if ($instance instanceof MineModel &&
             !$instance->incrementing &&
