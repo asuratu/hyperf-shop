@@ -26,7 +26,7 @@ class AppExceptionHandler extends ExceptionHandler
 {
     use ControllerTrait;
 
-    public function handle(Throwable $throwable, ResponseInterface $response)
+    public function handle(Throwable $throwable, ResponseInterface $response): ResponseInterface
     {
         $format = [
             'success' => false,
@@ -64,7 +64,11 @@ class AppExceptionHandler extends ExceptionHandler
                 $status = 200;
                 break;
             default:
-                $format['message'] = '服务器错误 ' . $throwable->getMessage() . ':: FILE:' . $throwable->getFile() . ':: LINE: ' . $throwable->getLine();
+                if (config('app_env') === 'prod') {
+                    $format['message'] = StatusCode::getMessage(StatusCode::ERR_SERVER);
+                } else {
+                    $format['message'] = '服务器错误 ' . $throwable->getMessage() . ':: FILE:' . $throwable->getFile() . ':: LINE: ' . $throwable->getLine();
+                }
                 $status = 500;
         }
 
