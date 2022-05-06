@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Api\Model;
 
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\BelongsTo;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\ApiModel;
 
@@ -27,24 +28,40 @@ class OrderItem extends ApiModel
     use SoftDeletes;
 
     public $incrementing = false;
-
+    public $timestamps = false;
     /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'shop_order_items';
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['id', 'order_id', 'product_id', 'product_sku_id', 'amount', 'price', 'rating', 'review', 'reviewed_at', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['amount', 'price', 'rating', 'review', 'reviewed_at'];
     /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
-    protected $casts = ['id' => 'integer', 'order_id' => 'integer', 'product_id' => 'integer', 'product_sku_id' => 'integer', 'amount' => 'integer', 'price' => 'decimal:2', 'rating' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected $casts = ['order_id' => 'integer', 'product_id' => 'integer', 'product_sku_id' => 'integer', 'amount' => 'integer', 'price' => 'decimal:2', 'rating' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected $dates = ['reviewed_at'];
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function productSku(): BelongsTo
+    {
+        return $this->belongsTo(ProductSku::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
 }

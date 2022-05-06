@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Api\Model;
 
 use Carbon\Carbon;
+use Hyperf\Database\Model\Events\Saving;
+use Hyperf\Database\Model\Relations\BelongsTo;
+use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\Database\Model\SoftDeletes;
+use Log;
 use Mine\ApiModel;
 
 /**
@@ -54,9 +58,62 @@ class Order extends ApiModel
      *
      * @var array
      */
-    protected $casts = ['id' => 'integer', 'user_id' => 'integer', 'total_amount' => 'decimal:2', 'closed' => 'integer', 'reviewed' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected $casts = [
+        'id' => 'integer',
+        'user_id' => 'integer',
+        'total_amount' => 'decimal:2',
+        'closed' => 'boolean',
+        'reviewed' => 'boolean',
+        'address' => 'json',
+        'ship_data' => 'json',
+        'extra' => 'json',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
 
-    public function user()
+    protected $dates = [
+        'paid_at',
+    ];
+
+    public function saving(Saving $event)
     {
+        // 如果模型的 no 字段为空
+        if (!$this->no) {
+            // 调用 findAvailableNo 生成订单流水号
+            $this->no = static::findAvailableNo();
+            // 如果生成失败，则终止创建订单
+            if (!$this->no) {
+                return false;
+            }
+        }
+        $this->refund_status = $this->refund_status ?? 'pending';
+        $this->ship_status = $this->ship_status ?? 'pending';
     }
+
+    public static function findAvailableNo(): bool|string
+    {
+        // 订单流水号前缀
+        $prefix = date('YmdHis');
+        for ($i = 0; $i < 10; $i++) {
+            // 随机生成 6 位的数字
+            $no = $prefix . str_pad((string)mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            // 判断是否已经存在
+            if (!static::query()->where('no', $no)->exists()) {
+                return $no;
+            }
+        }
+        logger('Api Access Log')->error('find order no failed');
+        return false;
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
 }
