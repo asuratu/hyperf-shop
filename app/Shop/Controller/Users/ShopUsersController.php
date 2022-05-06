@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shop\Controller\Users;
 
-use Api\Request\Users\ShopUsersCreateRequest;
-use Api\Request\Users\ShopUsersUpdateRequest;
 use App\Shop\Service\ShopUsersService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -30,7 +28,7 @@ class ShopUsersController extends MineController
 {
     /**
      * 业务处理服务
-     * ShopUsersService
+     * UsersService
      */
     #[Inject]
     protected ShopUsersService $service;

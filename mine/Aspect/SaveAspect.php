@@ -30,7 +30,8 @@ use Throwable;
 class SaveAspect extends AbstractAspect
 {
     public $classes = [
-        'Mine\MineModel::save'
+        'Mine\MineModel::save',
+        'Mine\ApiModel::save',
     ];
 
     /**
@@ -45,12 +46,11 @@ class SaveAspect extends AbstractAspect
     {
         $instance = $proceedingJoinPoint->getInstance();
 
-        if (config('mineadmin.data_scope_enabled')) {
+        if (config('mineadmin.data_scope_enabled') && $instance instanceof MineModel) {
             try {
                 $user = user();
                 // 设置创建人
-                if ($instance instanceof MineModel &&
-                    in_array('created_by', $instance->getFillable()) &&
+                if (in_array('created_by', $instance->getFillable()) &&
                     is_null($instance->created_by)
                 ) {
                     $user->check();
@@ -58,18 +58,16 @@ class SaveAspect extends AbstractAspect
                 }
 
                 // 设置更新人
-                if ($instance instanceof MineModel && in_array('updated_by', $instance->getFillable())) {
+                if (in_array('updated_by', $instance->getFillable())) {
                     $user->check();
                     $instance->updated_by = $user->getId();
                 }
-
             } catch (Throwable $e) {
             }
         }
 
         // 生成ID
-        if ($instance instanceof MineModel &&
-            !$instance->incrementing &&
+        if (!$instance->incrementing &&
             $instance->getPrimaryKeyType() === 'int' &&
             empty($instance->{$instance->getKeyName()})
         ) {

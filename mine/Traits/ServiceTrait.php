@@ -16,6 +16,7 @@ use Hyperf\Database\Model\Collection;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Abstracts\AbstractMapper;
 use Mine\Annotation\Transaction;
+use Mine\ApiModel;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
 use Mine\Exception\NormalStatusException;
@@ -184,9 +185,9 @@ trait ServiceTrait
     /**
      * 读取一条数据
      * @param int $id
-     * @return MineModel|null
+     * @return MineModel|ApiModel|null
      */
-    public function read(int $id): ?MineModel
+    public function read(int $id): MineModel|ApiModel|null
     {
         return $this->mapper->read($id);
     }
@@ -218,10 +219,10 @@ trait ServiceTrait
     /**
      * 从回收站读取一条数据
      * @param int $id
-     * @return MineModel
+     * @return MineModel|ApiModel
      * @noinspection PhpUnused
      */
-    public function readByRecycle(int $id): MineModel
+    public function readByRecycle(int $id): MineModel|ApiModel
     {
         return $this->mapper->readByRecycle($id);
     }

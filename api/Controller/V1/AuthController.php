@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Api\Controller\V1;
 
-use Api\Request\Users\ShopUserLoginRequest;
-use Api\Request\Users\ShopUserRegisterRequest;
-use Api\Resource\ShopUserResource;
+use Api\Request\Users\UserLoginRequest;
+use Api\Request\Users\UserRegisterRequest;
 use Api\Resource\UserLoginResource;
-use Api\Service\ShopUsersService;
+use Api\Resource\UserResource;
+use Api\Service\UsersService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -22,24 +22,24 @@ use Psr\SimpleCache\InvalidArgumentException;
 
 /**
  * 用户登录注册
- * Class ShopUsersController
+ * Class UsersController
  */
 #[Controller(prefix: "api/v1/auth")]
 class AuthController extends BaseController
 {
     #[Inject]
-    protected ShopUsersService $service;
+    protected UsersService $service;
 
     /**
      * 用户账号密码登录
-     * @param ShopUserLoginRequest $request
+     * @param UserLoginRequest $request
      * @return ResponseInterface
      * @throws InvalidArgumentException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[PostMapping("login")]
-    public function login(ShopUserLoginRequest $request): ResponseInterface
+    public function login(UserLoginRequest $request): ResponseInterface
     {
         return $this->success(
             new UserLoginResource(
@@ -55,14 +55,14 @@ class AuthController extends BaseController
 
     /**
      * 用户账号密码注册
-     * @param ShopUserRegisterRequest $request
+     * @param UserRegisterRequest $request
      * @return ResponseInterface
      * @throws InvalidArgumentException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[PostMapping("register")]
-    public function register(ShopUserRegisterRequest $request): ResponseInterface
+    public function register(UserRegisterRequest $request): ResponseInterface
     {
         return $this->success(
             new UserLoginResource(
@@ -86,7 +86,7 @@ class AuthController extends BaseController
     #[GetMapping("getInfo"), Auth('api')]
     public function getInfo(): ResponseInterface
     {
-        return $this->success(new ShopUserResource($this->service->getInfo()));
+        return $this->success(new UserResource($this->service->getInfo()));
     }
 
     /**

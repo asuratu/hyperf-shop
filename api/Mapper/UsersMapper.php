@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Api\Mapper;
 
-use App\Shop\Model\ShopProducts;
-use App\Shop\Model\ShopUser;
+use Api\Model\Product;
+use Api\Model\User;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
 use Hyperf\Database\Model\ModelNotFoundException;
@@ -14,16 +14,16 @@ use Mine\Abstracts\AbstractMapper;
 /**
  * 前台用户Mapper类
  */
-class ShopUsersMapper extends AbstractMapper
+class UsersMapper extends AbstractMapper
 {
     /**
-     * @var ShopUser
+     * @var User
      */
     public $model;
 
     public function assignModel()
     {
-        $this->model = ShopUser::class;
+        $this->model = User::class;
     }
 
     /**
@@ -71,7 +71,7 @@ class ShopUsersMapper extends AbstractMapper
             // 只查询当前 on_sale 为 1 的商品
             ->whereHas('productSku', function ($query) {
                 $query->whereHas('product', function ($query) {
-                    $query->where('on_sale', ShopProducts::ON_SALE);
+                    $query->where('on_sale', Product::ON_SALE);
                 });
             })
             ->with('productSku')
@@ -87,13 +87,13 @@ class ShopUsersMapper extends AbstractMapper
 
     /**
      * 获取当前用户实例
-     * @return ShopUser
+     * @return User
      */
-    public function getUser(): ShopUser
+    public function getUser(): User
     {
         $user = $this->model::findOrFail((int)user('api')->getId());
 
-        if (!$user instanceof ShopUser) {
+        if (!$user instanceof User) {
             throw new ModelNotFoundException();
         }
 
@@ -123,7 +123,7 @@ class ShopUsersMapper extends AbstractMapper
         $user = $this->getUser();
 
         $products = $user->favoriteProducts()
-            ->where('on_sale', ShopProducts::ON_SALE)
+            ->where('on_sale', Product::ON_SALE)
             ->with('skus')
             ->paginate(
                 (int)$data['pageSize'] ?? $this->model::PAGE_SIZE,

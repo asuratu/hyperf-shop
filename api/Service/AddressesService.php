@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Api\Service;
 
-use App\Shop\Mapper\ShopAddressesMapper;
+use Api\Mapper\AddressesMapper;
 use Mine\Abstracts\AbstractService;
 
 /**
  * 收货地址管理服务类
  */
-class ShopAddressesService extends AbstractService
+class AddressesService extends AbstractService
 {
     /**
-     * @var ShopAddressesMapper
+     * @var AddressesMapper
      */
     public $mapper;
 
-    public function __construct(ShopAddressesMapper $mapper)
+    public function __construct(AddressesMapper $mapper)
     {
         $this->mapper = $mapper;
     }

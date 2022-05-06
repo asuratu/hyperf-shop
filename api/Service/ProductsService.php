@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Api\Service;
 
-use Api\Mapper\ShopProductsMapper;
-use Api\Mapper\ShopUsersMapper;
+use Api\Mapper\ProductsMapper;
+use Api\Mapper\UsersMapper;
 use Mine\Abstracts\AbstractService;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
@@ -15,30 +15,30 @@ use Psr\Container\NotFoundExceptionInterface;
 /**
  * 商品管理服务类
  */
-class ShopProductsService extends AbstractService
+class ProductsService extends AbstractService
 {
     /**
-     * @var ShopProductsMapper
+     * @var ProductsMapper
      */
     public $mapper;
 
     /**
-     * @var ShopUsersMapper
+     * @var UsersMapper
      */
-    protected ShopUsersMapper $userMapper;
+    protected UsersMapper $userMapper;
 
     /**
-     * @var ShopUsersService
+     * @var UsersService
      */
-    protected ShopUsersService $usersService;
+    protected UsersService $usersService;
 
     /**
-     * ShopProductsService constructor.
-     * @param ShopProductsMapper $mapper
-     * @param ShopUsersMapper $userMapper
-     * @param ShopUsersService $usersService
+     * ProductsService constructor.
+     * @param ProductsMapper $mapper
+     * @param UsersMapper $userMapper
+     * @param UsersService $usersService
      */
-    public function __construct(ShopProductsMapper $mapper, ShopUsersMapper $userMapper, ShopUsersService $usersService)
+    public function __construct(ProductsMapper $mapper, UsersMapper $userMapper, UsersService $usersService)
     {
         $this->mapper = $mapper;
         $this->userMapper = $userMapper;

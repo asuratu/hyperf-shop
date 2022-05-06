@@ -8,7 +8,7 @@ use JetBrains\PhpStorm\ArrayShape;
 /**
  * 收货地址管理验证数据类 (Create Update)
  */
-class ShopAddressesRequest extends FormRequest
+class AddressesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

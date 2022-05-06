@@ -34,9 +34,9 @@ class MineRequest extends Request
 
         if (isset($headers['x-real-ip'])) {
             $ip = $headers['x-real-ip'][0];
-        } else if (isset($headers['x-forwarded-for'])) {
+        } elseif (isset($headers['x-forwarded-for'])) {
             $ip = $headers['x-forwarded-for'][0];
-        } else if (isset($headers['http_x_forwarded_for'])) {
+        } elseif (isset($headers['http_x_forwarded_for'])) {
             $ip = $headers['http_x_forwarded_for'][0];
         }
 
@@ -56,4 +56,3 @@ class MineRequest extends Request
         }
     }
 }
-

@@ -4,7 +4,7 @@ namespace Api\Resource;
 
 use Hyperf\Resource\Json\JsonResource;
 
-class ShopUserResource extends JsonResource
+class UserResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

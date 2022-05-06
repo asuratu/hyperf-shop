@@ -9,10 +9,12 @@
  * @Link   https://gitee.com/xmo/MineAdmin
  */
 
-declare (strict_types = 1);
+declare(strict_types=1);
+
 namespace Mine\Abstracts;
 
 use Hyperf\Context\Context;
+use Mine\ApiModel;
 use Mine\MineModel;
 use Mine\Traits\MapperTrait;
 
@@ -25,16 +27,16 @@ abstract class AbstractMapper
     use MapperTrait;
 
     /**
-     * @var MineModel
+     * @var MineModel|ApiModel
      */
     public $model;
-    
-    abstract public function assignModel();
 
     public function __construct()
     {
         $this->assignModel();
     }
+
+    abstract public function assignModel();
 
     /**
      * 把数据设置为类属性

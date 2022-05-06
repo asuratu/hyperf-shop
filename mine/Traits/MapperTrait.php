@@ -18,6 +18,7 @@ use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Annotation\Transaction;
+use Mine\ApiModel;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
 use Mine\MineCollection;
@@ -29,19 +30,27 @@ use Psr\Container\NotFoundExceptionInterface;
 trait MapperTrait
 {
     /**
-     * @var MineModel
+     * @var MineModel|ApiModel
      */
     public $model;
 
     /**
-     * 获取列表数据
+     * 获取列表数据（带分页）
      * @param array|null $params
      * @param bool $isScope
+     * @param string $pageName
      * @return array
      */
-    public function getList(?array $params, bool $isScope = true): array
+    public function getPageList(?array $params, bool $isScope = true, string $pageName = 'page'): array
     {
-        return $this->listQuerySetting($params, $isScope)->get()->toArray();
+        $paginate = $this->listQuerySetting($params, $isScope)->paginate(
+            $params['pageSize'] ?? $this->model::PAGE_SIZE,
+            ['*'],
+            $pageName,
+            $params[$pageName] ?? 1
+        );
+
+        return $this->setPaginate($paginate);
     }
 
     /**
@@ -137,25 +146,6 @@ trait MapperTrait
     }
 
     /**
-     * 获取列表数据（带分页）
-     * @param array|null $params
-     * @param bool $isScope
-     * @param string $pageName
-     * @return array
-     */
-    public function getPageList(?array $params, bool $isScope = true, string $pageName = 'page'): array
-    {
-        $paginate = $this->listQuerySetting($params, $isScope)->paginate(
-            $params['pageSize'] ?? $this->model::PAGE_SIZE,
-            ['*'],
-            $pageName,
-            $params[$pageName] ?? 1
-        );
-
-        return $this->setPaginate($paginate);
-    }
-
-    /**
      * 设置数据库分页
      * @param LengthAwarePaginatorInterface $paginate
      * @return array
@@ -209,8 +199,7 @@ trait MapperTrait
         string $id = 'id',
         string $parentField = 'parent_id',
         string $children = 'children'
-    ): array
-    {
+    ): array {
         $params['_mainAdmin_tree'] = true;
         $params['_mainAdmin_tree_pid'] = $parentField;
         $data = $this->listQuerySetting($params, $isScope)->get();
@@ -218,75 +207,38 @@ trait MapperTrait
     }
 
     /**
-     * 新增数据，返回主键
-     * @param array $data
-     * @return int
+     * 闭包通用方式查询数据集合
+     * @param Closure|null $closure
+     * @param array|string[] $column
+     * @return array
      */
-    public function save(array $data): int
+    public function get(?Closure $closure = null, array $column = ['*']): array
     {
-        $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
-        $model = $this->model::create($data);
-        return $model->{$model->getKeyName()};
+        return $this->settingClosure($closure)->get($column)->toArray();
     }
 
     /**
-     * 过滤新增或写入不存在的字段
-     * @param array $data
-     * @param bool $removePk
+     * 闭包通用查询设置
+     * @param Closure|null $closure 传入的闭包查询
+     * @return Builder
      */
-    protected function filterExecuteAttributes(array &$data, bool $removePk = false): void
+    public function settingClosure(?Closure $closure = null): Builder
     {
-        $model = new $this->model;
-        $attrs = $model->getFillable();
-        foreach ($data as $name => $val) {
-            if (!in_array($name, $attrs)) {
-                unset($data[$name]);
+        return $this->model::where(function ($query) use ($closure) {
+            if ($closure instanceof Closure) {
+                $closure($query);
             }
-        }
-        if ($removePk && isset($data[$model->getKeyName()])) {
-            unset($data[$model->getKeyName()]);
-        }
-        $model = null;
-    }
-
-    /**
-     * @return MineModel
-     */
-    public function getModel(): MineModel
-    {
-        return new $this->model;
-    }
-
-    /**
-     * 新增数据，返回模型
-     * @param array $data
-     * @return Model
-     */
-    public function create(array $data): Model
-    {
-        $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
-        return $this->model::create($data);
+        });
     }
 
     /**
      * 读取一条数据
      * @param int $id
-     * @return MineModel|null
+     * @return MineModel|ApiModel|null
      */
-    public function read(int $id): ?MineModel
+    public function read(int $id): MineModel|ApiModel|null
     {
         return ($model = $this->model::findOrFail($id)) ? $model : null;
-    }
-
-    /**
-     * 按条件读取一行数据
-     * @param array $condition
-     * @param array $column
-     * @return mixed
-     */
-    public function first(array $condition, array $column = ['*']): ?MineModel
-    {
-        return ($model = $this->model::where($condition)->first($column)) ? $model : null;
     }
 
     /**
@@ -314,10 +266,10 @@ trait MapperTrait
     /**
      * 从回收站读取一条数据
      * @param int $id
-     * @return MineModel
+     * @return MineModel|ApiModel|null
      * @noinspection PhpUnused
      */
-    public function readByRecycle(int $id): ?MineModel
+    public function readByRecycle(int $id): MineModel|ApiModel|null
     {
         return ($model = $this->model::withTrashed()->find($id)) ? $model : null;
     }
@@ -331,22 +283,6 @@ trait MapperTrait
     {
         $this->model::destroy($ids);
         return true;
-    }
-
-    /**
-     * 更新一条数据
-     * @param int $id
-     * @param array $data
-     * @return bool
-     */
-    public function update(int $id, array $data): bool
-    {
-        $this->filterExecuteAttributes($data, true);
-        $model = $this->model::findOrFail($id);
-        foreach ($data as $name => $val) {
-            $model[$name] = $val;
-        }
-        return $model->save();
     }
 
     /**
@@ -372,6 +308,57 @@ trait MapperTrait
     }
 
     /**
+     * 过滤新增或写入不存在的字段
+     * @param array $data
+     * @param bool $removePk
+     */
+    protected function filterExecuteAttributes(array &$data, bool $removePk = false): void
+    {
+        $model = new $this->model;
+        $attrs = $model->getFillable();
+        foreach ($data as $name => $val) {
+            if (!in_array($name, $attrs)) {
+                unset($data[$name]);
+            }
+        }
+        if ($removePk && isset($data[$model->getKeyName()])) {
+            unset($data[$model->getKeyName()]);
+        }
+        $model = null;
+    }
+
+    /**
+     * 新增数据，返回主键
+     * @param array $data
+     * @return int
+     */
+    public function save(array $data): int
+    {
+        $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
+        $model = $this->model::create($data);
+        return $model->{$model->getKeyName()};
+    }
+
+    /**
+     * @return MineModel|ApiModel
+     */
+    public function getModel(): MineModel|ApiModel
+    {
+        return new $this->model;
+    }
+
+    /**
+     * 新增数据，返回模型
+     * @param array $data
+     * @return Model
+     */
+    public function create(array $data): Model
+    {
+        $this->filterExecuteAttributes($data, $this->getModel()->incrementing);
+        return $this->model::create($data);
+    }
+
+    /**
      * 闭包通用方式检查数据是否存在
      * @param Closure|null $closure
      * @return bool
@@ -379,20 +366,6 @@ trait MapperTrait
     public function exists(?Closure $closure = null): bool
     {
         return $this->settingClosure($closure)->exists();
-    }
-
-    /**
-     * 闭包通用查询设置
-     * @param Closure|null $closure 传入的闭包查询
-     * @return Builder
-     */
-    public function settingClosure(?Closure $closure = null): Builder
-    {
-        return $this->model::where(function ($query) use ($closure) {
-            if ($closure instanceof Closure) {
-                $closure($query);
-            }
-        });
     }
 
     /**
@@ -405,6 +378,22 @@ trait MapperTrait
     {
         $this->filterExecuteAttributes($data, true);
         return $this->model::query()->where($condition)->update($data) > 0;
+    }
+
+    /**
+     * 更新一条数据
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    public function update(int $id, array $data): bool
+    {
+        $this->filterExecuteAttributes($data, true);
+        $model = $this->model::findOrFail($id);
+        foreach ($data as $name => $val) {
+            $model[$name] = $val;
+        }
+        return $model->save();
     }
 
     /**
@@ -484,25 +473,14 @@ trait MapperTrait
     }
 
     /**
-     * 闭包通用方式查询数据集合
-     * @param Closure|null $closure
-     * @param array|string[] $column
-     * @return array
+     * 按条件读取一行数据
+     * @param array $condition
+     * @param array $column
+     * @return MineModel|ApiModel|null
      */
-    public function get(?Closure $closure = null, array $column = ['*']): array
+    public function first(array $condition, array $column = ['*']): MineModel|ApiModel|null
     {
-        return $this->settingClosure($closure)->get($column)->toArray();
-    }
-
-    /**
-     * 闭包通用方式统计
-     * @param Closure|null $closure
-     * @param string $column
-     * @return int
-     */
-    public function count(?Closure $closure = null, string $column = '*'): int
-    {
-        return $this->settingClosure($closure)->count($column);
+        return ($model = $this->model::where($condition)->first($column)) ? $model : null;
     }
 
     /**
@@ -547,5 +525,27 @@ trait MapperTrait
         }
 
         return $result;
+    }
+
+    /**
+     * 获取列表数据
+     * @param array|null $params
+     * @param bool $isScope
+     * @return array
+     */
+    public function getList(?array $params, bool $isScope = true): array
+    {
+        return $this->listQuerySetting($params, $isScope)->get()->toArray();
+    }
+
+    /**
+     * 闭包通用方式统计
+     * @param Closure|null $closure
+     * @param string $column
+     * @return int
+     */
+    public function count(?Closure $closure = null, string $column = '*'): int
+    {
+        return $this->settingClosure($closure)->count($column);
     }
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Api\Controller\V1;
 
 use Api\Request\Product\AddCartRequest;
-use Api\Resource\ShopProductsDetailResource;
-use Api\Service\ShopProductsService;
+use Api\Resource\ProductsDetailResource;
+use Api\Service\ProductsService;
 use Dotenv\Exception\ValidationException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -20,17 +20,16 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * 商品管理控制器
- * Class ShopProductsController
+ * Class ProductsController
  */
 #[Controller(prefix: "api/v1/products")]
 class ProductsController extends BaseController
 {
     /**
      * 业务处理服务
-     * ShopProductsService
      */
     #[Inject]
-    protected ShopProductsService $service;
+    protected ProductsService $service;
 
     /**
      * 列表
@@ -42,7 +41,7 @@ class ProductsController extends BaseController
     public function index(): ResponseInterface
     {
         $list = $this->service->getPageList($this->request->all(), false);
-        $list['items'] = ShopProductsDetailResource::collection($list['items']);
+        $list['items'] = ProductsDetailResource::collection($list['items']);
         return $this->success($list);
     }
 
@@ -56,7 +55,7 @@ class ProductsController extends BaseController
     #[GetMapping("read/{id}")]
     public function read(int $id): ResponseInterface
     {
-        return $this->success(new ShopProductsDetailResource($this->service->read($id)));
+        return $this->success(new ProductsDetailResource($this->service->read($id)));
     }
 
     /**
@@ -83,7 +82,7 @@ class ProductsController extends BaseController
     public function favorites(): ResponseInterface
     {
         $list = $this->service->favorites($this->request->all());
-        $list['items'] = ShopProductsDetailResource::collection($list['items']);
+        $list['items'] = ProductsDetailResource::collection($list['items']);
         return $this->success($list);
     }
 

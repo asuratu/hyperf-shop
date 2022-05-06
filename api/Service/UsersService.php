@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Api\Service;
 
-use Api\Mapper\ShopUsersMapper;
-use App\Shop\Model\ShopUser;
+use Api\Mapper\UsersMapper;
+use Api\Model\User;
 use Exception;
 use Hyperf\Cache\Annotation\Cacheable;
 use Hyperf\Database\Model\Model;
@@ -29,10 +29,10 @@ use Psr\SimpleCache\InvalidArgumentException;
 /**
  * 用户管理服务类
  */
-class ShopUsersService extends AbstractService
+class UsersService extends AbstractService
 {
     /**
-     * @var ShopUsersMapper
+     * @var UsersMapper
      */
     public $mapper;
 
@@ -42,7 +42,7 @@ class ShopUsersService extends AbstractService
     #[InJect]
     protected EventDispatcherInterface $evDispatcher;
 
-    public function __construct(ShopUsersMapper $mapper)
+    public function __construct(UsersMapper $mapper)
     {
         $this->mapper = $mapper;
     }
@@ -116,7 +116,7 @@ class ShopUsersService extends AbstractService
             unset($userinfoArr['password']);
             $userLoginAfter = new ApiUserLoginAfter($userinfoArr);
             if ($this->mapper->checkPass($data['password'], $password)) {
-                if ($userinfo['status'] == ShopUser::USER_BAN) {
+                if ($userinfo['status'] == User::USER_BAN) {
                     $userLoginAfter->loginStatus = false;
                     $userLoginAfter->message = t('jwt.user_ban');
                     $this->evDispatcher->dispatch($userLoginAfter);
@@ -165,11 +165,11 @@ class ShopUsersService extends AbstractService
 
     /**
      * 获取用户信息
-     * @return ShopUser
+     * @return User
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function getInfo(): ShopUser
+    public function getInfo(): User
     {
         if (($uid = user('api')->getId())) {
             return $this->getCacheInfo((int)$uid);
@@ -180,13 +180,13 @@ class ShopUsersService extends AbstractService
     /**
      * 获取缓存用户信息
      * @param int $id
-     * @return ShopUser
+     * @return User
      */
     #[Cacheable(prefix: "loginInfo", ttl: 0, value: "userId_#{id}")]
-    protected function getCacheInfo(int $id): ShopUser
+    protected function getCacheInfo(int $id): User
     {
         $user = $this->mapper->getModel()->findOrFail($id);
-        if (!$user instanceof ShopUser) {
+        if (!$user instanceof User) {
             throw new ModelNotFoundException();
         }
         $user->addHidden('deleted_at', 'password');
@@ -214,11 +214,11 @@ class ShopUsersService extends AbstractService
 
     /**
      * 检查用户是否收藏过某商品
-     * @param ShopUser $user
+     * @param User $user
      * @param int $productId
      * @return bool
      */
-    public function existsFavoriteProduct(ShopUser $user, int $productId): bool
+    public function existsFavoriteProduct(User $user, int $productId): bool
     {
         return $user->favoriteProducts()
             ->where('shop_products.id', $productId)

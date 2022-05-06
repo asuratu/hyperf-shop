@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace Api\Mapper;
 
-use App\Shop\Model\ShopCartItem;
-use App\Shop\Model\ShopProducts;
-use App\Shop\Model\ShopUser;
+use Api\Model\CartItem;
+use Api\Model\Product;
+use Api\Model\User;
 use Hyperf\Database\Model\Builder;
 use Mine\Abstracts\AbstractMapper;
 
 /**
  * 商品管理Mapper类
  */
-class ShopProductsMapper extends AbstractMapper
+class ProductsMapper extends AbstractMapper
 {
     /**
-     * @var ShopProducts
+     * @var Product
      */
     public $model;
 
     public function assignModel()
     {
-        $this->model = ShopProducts::class;
+        $this->model = Product::class;
     }
 
     /**
@@ -34,7 +34,7 @@ class ShopProductsMapper extends AbstractMapper
     public function handleSearch(Builder $builder, array $params): Builder
     {
         // 只查询在售的商品
-        $builder->where('on_sale', ShopProducts::ON_SALE);
+        $builder->where('on_sale', Product::ON_SALE);
 
         // 关键词
         if (isset($params['search']) && $params['search'] !== '') {
@@ -54,14 +54,14 @@ class ShopProductsMapper extends AbstractMapper
 
     /**
      * 获取用户的购物车记录
-     * @param ShopUser $shopUser
+     * @param User $user
      * @param int $skuId
-     * @return ShopCartItem|null
+     * @return CartItem|null
      */
-    public function cartItem(ShopUser $shopUser, int $skuId): ShopCartItem|null
+    public function cartItem(User $user, int $skuId): CartItem|null
     {
-        $cart = $shopUser->cartItems()->where('product_sku_id', $skuId)->first();
-        if (!$cart instanceof ShopCartItem) {
+        $cart = $user->cartItems()->where('product_sku_id', $skuId)->first();
+        if (!$cart instanceof CartItem) {
             return null;
         }
         return $cart;
@@ -69,15 +69,15 @@ class ShopProductsMapper extends AbstractMapper
 
     /**
      * 创建一条购物车记录
-     * @param ShopUser $shopUser
+     * @param User $user
      * @param int $skuId
      * @param int $amount
      * @return bool
      */
-    public function createCartItem(ShopUser $shopUser, int $skuId, int $amount): bool
+    public function createCartItem(User $user, int $skuId, int $amount): bool
     {
-        $cart = new ShopCartItem(['amount' => $amount]);
-        $cart->user()->associate($shopUser);
+        $cart = new CartItem(['amount' => $amount]);
+        $cart->user()->associate($user);
         $cart->productSku()->associate($skuId);
         return $cart->save();
     }

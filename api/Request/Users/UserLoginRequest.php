@@ -7,7 +7,7 @@ use Hyperf\Validation\Request\FormRequest;
 /**
  * 用户账号密码登录验证数据类.
  */
-class ShopUserLoginRequest extends FormRequest
+class UserLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

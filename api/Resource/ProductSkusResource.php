@@ -4,7 +4,7 @@ namespace Api\Resource;
 
 use Hyperf\Resource\Json\JsonResource;
 
-class ShopProductsDetailResource extends JsonResource
+class ProductSkusResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,14 +17,11 @@ class ShopProductsDetailResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'image' => $this->image,
-            'rating' => $this->rating,
-            'sold_count' => $this->sold_count,
-            'review_count' => $this->review_count,
             'price' => $this->price,
+            'stock' => $this->stock,
+            'product_id' => $this->product_id,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'skus' => ShopProductSkusResource::collection($this->skus),
+            'updated_at' => $this->updated_at
         ];
     }
 }

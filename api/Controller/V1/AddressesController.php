@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Api\Controller\V1;
 
-use Api\Request\Users\ShopAddressesRequest;
-use Api\Resource\ShopAddressResource;
-use Api\Service\ShopAddressesService;
+use Api\Request\Users\AddressesRequest;
+use Api\Resource\AddressResource;
+use Api\Service\AddressesService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -21,13 +21,13 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * 收货地址管理控制器
- * Class ShopAddressesController
+ * Class AddressesController
  */
 #[Controller(prefix: "api/v1/addresses"), Auth('api')]
-class ShopAddressesController extends MineController
+class AddressesController extends MineController
 {
     #[Inject]
-    protected ShopAddressesService $service;
+    protected AddressesService $service;
 
     /**
      * 列表
@@ -39,19 +39,19 @@ class ShopAddressesController extends MineController
     public function index(): ResponseInterface
     {
         $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all());
-        $list['items'] = ShopAddressResource::collection($list['items']);
+        $list['items'] = AddressResource::collection($list['items']);
         return $this->success($list);
     }
 
     /**
      * 新增
-     * @param ShopAddressesRequest $request
+     * @param AddressesRequest $request
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[PostMapping("save")]
-    public function save(ShopAddressesRequest $request): ResponseInterface
+    public function save(AddressesRequest $request): ResponseInterface
     {
         return $this->success(['id' => $this->service->mySave($request->all())]);
     }
@@ -59,13 +59,13 @@ class ShopAddressesController extends MineController
     /**
      * 更新
      * @param int $id
-     * @param ShopAddressesRequest $request
+     * @param AddressesRequest $request
      * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[PutMapping("update/{id}")]
-    public function update(int $id, ShopAddressesRequest $request): ResponseInterface
+    public function update(int $id, AddressesRequest $request): ResponseInterface
     {
         return $this->service->myUpdate($id, $request->all()) ? $this->success() : $this->error();
     }
