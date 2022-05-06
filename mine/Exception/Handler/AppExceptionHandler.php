@@ -48,11 +48,14 @@ class AppExceptionHandler extends ExceptionHandler
                 break;
             case $throwable instanceof ModelNotFoundException:
                 $format['code'] = StatusCode::ERR_MAINTAIN;
+                if (config('app_env') === 'prod') {
+                    $format['message'] = StatusCode::getMessage(StatusCode::ERR_MAINTAIN);
+                }
                 $status = 404;
                 break;
             case $throwable instanceof ValidationException:
-                $format['message'] = $throwable->validator->errors()->first();
                 $format['code'] = MineCode::VALIDATE_FAILED;
+                $format['message'] = $throwable->validator->errors()->first();
                 $status = 200;
                 break;
             case $throwable instanceof BusinessException:
