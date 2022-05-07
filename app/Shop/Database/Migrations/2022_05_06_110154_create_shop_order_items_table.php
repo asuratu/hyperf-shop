@@ -33,7 +33,7 @@ class CreateShopOrderItemsTable extends Migration
             $table->unsignedInteger('amount')->comment('数量');
             $table->decimal('price')->default(0)->comment('单价');
             $table->unsignedInteger('rating')->nullable()->comment('用户打分');
-            $table->text('review')->comment('用户评价');
+            $table->text('review')->nullable()->comment('用户评价');
             $table->dateTime('reviewed_at')->nullable()->comment('评价时间');
             $table->addColumn('timestamp', 'created_at', ['precision' => 0, 'comment' => '创建时间'])->nullable();
             $table->addColumn('timestamp', 'updated_at', ['precision' => 0, 'comment' => '更新时间'])->nullable();

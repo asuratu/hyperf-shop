@@ -102,12 +102,12 @@ class UsersMapper extends AbstractMapper
 
     /**
      * 用户收藏的商品列表
+     * @param User $user
      * @param array $skuIdArr
      * @return void
      */
-    public function removeCartItem(array $skuIdArr): void
+    public function removeCartItem(User $user, array $skuIdArr): void
     {
-        $user = $this->getUser();
         $user->cartItems()
             ->whereIn('product_sku_id', $skuIdArr)
             ->delete();

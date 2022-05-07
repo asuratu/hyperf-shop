@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Hyperf\Database\Model\Relations\BelongsTo;
 use Hyperf\Database\Model\SoftDeletes;
 use Mine\ApiModel;
+use Mine\Constants\StatusCode;
+use Mine\Exception\BusinessException;
 
 /**
  * @property int $id 主键
@@ -48,5 +50,22 @@ class ProductSku extends ApiModel
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function decreaseStock($amount): int
+    {
+        if ($amount < 0) {
+            throw new BusinessException(StatusCode::ERR_SUB_STOCK);
+        }
+
+        return $this->where('id', $this->id)->where('stock', '>=', $amount)->decrement('stock', $amount);
+    }
+
+    public function addStock($amount)
+    {
+        if ($amount < 0) {
+            throw new BusinessException(StatusCode::ERR_ADD_STOCK);
+        }
+        $this->increment('stock', $amount);
     }
 }

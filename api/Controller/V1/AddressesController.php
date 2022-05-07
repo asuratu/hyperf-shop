@@ -38,7 +38,7 @@ class AddressesController extends MineController
     #[GetMapping("index")]
     public function index(): ResponseInterface
     {
-        $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all());
+        $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all(), false);
         $list['items'] = AddressResource::collection($list['items']);
         return $this->success($list);
     }

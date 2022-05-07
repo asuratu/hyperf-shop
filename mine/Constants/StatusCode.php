@@ -120,4 +120,20 @@ class StatusCode extends AbstractConstants
      * @Message("重复操作！")
      */
     public const ERR_REPEAT = 3003;
+
+    /**
+     * @Message("减库存不可小于0！")
+     */
+    public const ERR_SUB_STOCK = 3004;
+
+    /**
+     * @Message("加库存不可小于0！")
+     */
+    public const ERR_ADD_STOCK = 3005;
+
+    /**
+     * @Message("该商品库存不足！")
+     */
+    public const ERR_STOCK_LESS = 3006;
+
 }

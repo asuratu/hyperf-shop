@@ -25,7 +25,7 @@ class ProductsService extends AbstractService
     /**
      * @var UsersMapper
      */
-    protected UsersMapper $userMapper;
+    protected UsersMapper $usersMapper;
 
     /**
      * @var UsersService
@@ -35,13 +35,13 @@ class ProductsService extends AbstractService
     /**
      * ProductsService constructor.
      * @param ProductsMapper $mapper
-     * @param UsersMapper $userMapper
+     * @param UsersMapper $usersMapper
      * @param UsersService $usersService
      */
-    public function __construct(ProductsMapper $mapper, UsersMapper $userMapper, UsersService $usersService)
+    public function __construct(ProductsMapper $mapper, UsersMapper $usersMapper, UsersService $usersService)
     {
         $this->mapper = $mapper;
-        $this->userMapper = $userMapper;
+        $this->usersMapper = $usersMapper;
         $this->usersService = $usersService;
     }
 
@@ -55,7 +55,7 @@ class ProductsService extends AbstractService
     public function favor($id): void
     {
         $product = $this->mapper->read($id);
-        $user = $this->userMapper->getUser();
+        $user = $this->usersMapper->getUser();
 
         if ($this->usersService->existsFavoriteProduct($user, $id)) {
             throw new BusinessException(StatusCode::ERR_REPEAT);
@@ -72,7 +72,7 @@ class ProductsService extends AbstractService
     public function disfavor($id): void
     {
         $product = $this->mapper->read($id);
-        $user = $this->userMapper->getUser();
+        $user = $this->usersMapper->getUser();
 
         if (!$this->usersService->existsFavoriteProduct($user, $id)) {
             throw new BusinessException(StatusCode::ERR_REPEAT);
@@ -88,7 +88,7 @@ class ProductsService extends AbstractService
      */
     public function favorites($data): array
     {
-        return $this->userMapper->favoriteProducts($data);
+        return $this->usersMapper->favoriteProducts($data);
     }
 
     /**
@@ -98,7 +98,7 @@ class ProductsService extends AbstractService
      */
     public function addCart($data): bool
     {
-        $user = $this->userMapper->getUser();
+        $user = $this->usersMapper->getUser();
 
         if ($cart = $this->mapper->cartItem($user, $data['sku_id'])) {
             // 如果存在则直接叠加商品数量
@@ -120,7 +120,8 @@ class ProductsService extends AbstractService
      */
     public function remove(string $ids): void
     {
-        $this->userMapper->removeCartItem(explode(',', $ids));
+        $user = $this->usersMapper->getUser();
+        $this->usersMapper->removeCartItem($user, explode(',', $ids));
     }
 
     /**
@@ -130,7 +131,7 @@ class ProductsService extends AbstractService
      */
     public function cartList(array $data): array
     {
-        return $this->userMapper->cartList($data);
+        return $this->usersMapper->cartList($data);
     }
 
 }

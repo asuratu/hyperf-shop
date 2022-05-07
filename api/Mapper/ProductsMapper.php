@@ -6,8 +6,10 @@ namespace Api\Mapper;
 
 use Api\Model\CartItem;
 use Api\Model\Product;
+use Api\Model\ProductSku;
 use Api\Model\User;
 use Hyperf\Database\Model\Builder;
+use Hyperf\Database\Model\Collection;
 use Mine\Abstracts\AbstractMapper;
 
 /**
@@ -93,5 +95,19 @@ class ProductsMapper extends AbstractMapper
         return $cart->update([
             'amount' => $cart->amount + $amount,
         ]);
+    }
+
+    /**
+     * 查询商品的多个sku
+     * @param array $skuIds
+     * @param string[] $select
+     * @return Collection|array
+     */
+    public function productSkus(array $skuIds, array $select = ['*']): Collection|array
+    {
+        return ProductSku::query()
+            ->select(...$select)
+            ->whereIn('id', $skuIds)
+            ->get();
     }
 }

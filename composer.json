@@ -51,7 +51,8 @@
         "tangwei/apidocs": "^1.0",
         "xmo/jwt-auth": "0.2.*",
         "xxtime/flysystem-aliyun-oss": "^1.5",
-        "zoujingli/ip2region": "^1.0"
+        "zoujingli/ip2region": "^1.0",
+        "ext-bcmath": "*"
     },
     "require-dev": {
         "hyperf/devtool": "~2.2.0",
