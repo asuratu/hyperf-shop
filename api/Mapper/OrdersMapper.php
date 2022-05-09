@@ -34,11 +34,19 @@ class OrdersMapper extends AbstractMapper
      */
     public function handleSearch(Builder $query, array $params): Builder
     {
-        // 省
-        if (isset($params['province']) && $params['province'] !== '') {
-            $query->where('province', '=', $params['province']);
-        }
+        $query->with(['items.product', 'items.productSku']);
+        return $query;
+    }
 
+    /**
+     * 排序处理器
+     * @param Builder $query
+     * @param array $params
+     * @return Builder
+     */
+    public function handleOrder(Builder $query, array $params): Builder
+    {
+        $query->with(['items.product', 'items.productSku']);
         return $query;
     }
 

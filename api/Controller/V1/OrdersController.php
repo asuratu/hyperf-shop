@@ -7,8 +7,10 @@ namespace Api\Controller\V1;
 use Api\Job\DelayCloseOrder;
 use Api\Request\Product\OrderRequest;
 use Api\Service\OrdersService;
+use Dotenv\Exception\ValidationException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Mine\Annotation\Auth;
 use Mine\AsyncQueue\Queue;
@@ -48,5 +50,19 @@ class OrdersController extends MineController
             'uuid' => time(),
         ]), config('app.order.ttl'));
         return $this->success();
+    }
+
+    /**
+     * 订单列表
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws ValidationException
+     */
+    #[GetMapping("index"), Auth('api')]
+    public function index(): ResponseInterface
+    {
+        $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all(), false);
+//        $list['items'] = OrderResource::collection($list['items']);
+        return $this->success($list);
     }
 }
