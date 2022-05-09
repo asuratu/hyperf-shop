@@ -1,17 +1,7 @@
 <?php
-/**
- * MineAdmin is committed to providing solutions for quickly building web applications
- * Please view the LICENSE file that was distributed with this source code,
- * For the full copyright and license information.
- * Thank you very much for using MineAdmin.
- *
- * @Author X.Mo<root@imoi.cn>
- * @Link   https://gitee.com/xmo/MineAdmin
- */
-
 declare(strict_types=1);
 
-namespace  Mine\Traits;
+namespace Mine\Traits;
 
 use App\System\Model\SystemDept;
 use App\System\Model\SystemRole;
@@ -29,11 +19,11 @@ trait ModelMacroTrait
         // 数据权限方法
         $model = $this;
         Builder::macro('userDataScope', function (?int $userid = null) use ($model) {
-            if (! config('mineadmin.data_scope_enabled')) {
+            if (!config('mineadmin.data_scope_enabled')) {
                 return $this;
             }
 
-            $userid = is_null($userid) ? (int) user()->getId() : $userid;
+            $userid = is_null($userid) ? (int)user()->getId() : $userid;
 
             if (empty($userid)) {
                 throw new MineException('Data Scope missing user_id');
@@ -60,7 +50,7 @@ trait ModelMacroTrait
 
                 public function __construct(int $userid, Builder $builder)
                 {
-                    $this->userid  = $userid;
+                    $this->userid = $userid;
                     $this->builder = $builder;
                 }
 
@@ -105,7 +95,7 @@ trait ModelMacroTrait
                                 break;
                             case SystemRole::DEPT_BELOW_SCOPE:
                                 // 本部门及子部门数据权限
-                                $deptIds = SystemDept::query()->where('level', 'like', '%'.$userModel->dept_id.'%')->pluck('id')->toArray();
+                                $deptIds = SystemDept::query()->where('level', 'like', '%' . $userModel->dept_id . '%')->pluck('id')->toArray();
                                 $deptIds[] = $userModel->dept_id;
                                 $this->userIds = array_merge(
                                     $this->userIds,

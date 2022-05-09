@@ -29,7 +29,7 @@ return [
             'namespace' => 'App\\Controller',
         ],
         'job' => [
-            'namespace' => 'App\\Job',
+            'namespace' => 'Api\\Job',
         ],
         'listener' => [
             'namespace' => 'App\\Listener',
@@ -41,4 +41,6 @@ return [
             'namespace' => 'App\\Processes',
         ],
     ],
+
+    'ide' => env('DEVTOOL_IDE', 'phpstorm')
 ];

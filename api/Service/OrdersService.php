@@ -9,6 +9,7 @@ use Api\Mapper\OrdersMapper;
 use Api\Mapper\ProductsMapper;
 use Api\Mapper\UsersMapper;
 use Api\Model\Order;
+use App\Job\Bilibili\SyncVideoFromUpUserJob;
 use Carbon\Carbon;
 use Mine\Abstracts\AbstractService;
 use Mine\Annotation\Transaction;
@@ -91,6 +92,7 @@ class OrdersService extends AbstractService
 
         // 将下单的商品从购物车中移除
         $this->usersMapper->removeCartItem($user, $skuIds);
+
         return $order;
     }
 }

@@ -11,6 +11,7 @@
     "license": "Apache-2.0",
     "require": {
         "php": ">=8.0",
+        "ext-bcmath": "*",
         "ext-gd": "*",
         "ext-json": "*",
         "ext-openssl": "*",
@@ -22,6 +23,7 @@
         "easyswoole/verifycode": "3.x",
         "fakerphp/faker": "^1.19",
         "hyperf/amqp": "^2.2",
+        "hyperf/async-queue": "^2.2",
         "hyperf/cache": "2.2.*",
         "hyperf/command": "2.2.*",
         "hyperf/config": "2.2.*",
@@ -51,8 +53,7 @@
         "tangwei/apidocs": "^1.0",
         "xmo/jwt-auth": "0.2.*",
         "xxtime/flysystem-aliyun-oss": "^1.5",
-        "zoujingli/ip2region": "^1.0",
-        "ext-bcmath": "*"
+        "zoujingli/ip2region": "^1.0"
     },
     "require-dev": {
         "hyperf/devtool": "~2.2.0",
@@ -77,15 +78,15 @@
             "Api\\": "api/"
         },
         "files": [
-            "mine/Helper/Helpers/functions.php",
-            "mine/Helper/Helpers/app.php",
-            "mine/Helper/Helpers/array.php",
-            "mine/Helper/Helpers/curl.php",
-            "mine/Helper/Helpers/file.php",
-            "mine/Helper/Helpers/math.php",
-            "mine/Helper/Helpers/publicFunctions.php",
-            "mine/Helper/Helpers/system.php",
-            "mine/Helper/Helpers/time.php"
+            "mine/Foundation/Helpers/functions.php",
+            "mine/Foundation/Helpers/app.php",
+            "mine/Foundation/Helpers/array.php",
+            "mine/Foundation/Helpers/curl.php",
+            "mine/Foundation/Helpers/file.php",
+            "mine/Foundation/Helpers/math.php",
+            "mine/Foundation/Helpers/publicFunctions.php",
+            "mine/Foundation/Helpers/system.php",
+            "mine/Foundation/Helpers/time.php"
         ]
     },
     "autoload-dev": {

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Api\Controller\V1;
 
+use Api\Job\DelayCloseOrder;
 use Api\Request\Product\OrderRequest;
 use Api\Service\OrdersService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Mine\Annotation\Auth;
+use Mine\AsyncQueue\Queue;
 use Mine\MineController;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -25,6 +27,9 @@ class OrdersController extends MineController
     #[Inject]
     protected OrdersService $service;
 
+    #[Inject]
+    protected Queue $queue;
+
     /**
      * 新增
      * @param OrderRequest $request
@@ -35,7 +40,13 @@ class OrdersController extends MineController
     #[PostMapping("save")]
     public function save(OrderRequest $request): ResponseInterface
     {
-        $this->service->createOrder($request->all());
+        $order = $this->service->createOrder($request->all());
+
+        //推送一个队列
+        $this->queue->push(new DelayCloseOrder([
+            'order' => $order,
+            'uuid' => time(),
+        ]), config('app.order.ttl'));
         return $this->success();
     }
 }

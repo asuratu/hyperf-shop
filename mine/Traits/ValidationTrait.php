@@ -10,7 +10,7 @@ use Mine\Exception\NormalStatusException;
 /**
  * 验证器基类
  * Trait ValidationTrait
- * @package App\Foundation\Traits
+ * @package Mine\Foundation\Traits
  */
 trait ValidationTrait
 {

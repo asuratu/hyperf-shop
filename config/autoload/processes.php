@@ -10,5 +10,8 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 return [
-    Mine\Crontab\MineCrontabProcess::class
+    //注册任务调度器进程
+    Mine\Crontab\MineCrontabProcess::class,
+    //注册队列进程
+    Hyperf\AsyncQueue\Process\ConsumerProcess::class,
 ];
