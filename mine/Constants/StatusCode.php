@@ -136,4 +136,8 @@ class StatusCode extends AbstractConstants
      */
     public const ERR_STOCK_LESS = 3006;
 
+    /**
+     * @Message("发货状态不正确！")
+     */
+    public const ERR_ORDER_SHIP_STATUS = 3007;
 }

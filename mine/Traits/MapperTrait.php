@@ -102,7 +102,7 @@ trait MapperTrait
     /**
      * 排序处理器
      * @param Builder $query
-     * @param array $params
+     * @param array|null $params
      * @return Builder
      */
     public function handleOrder(Builder $query, ?array &$params = null): Builder
@@ -275,7 +275,7 @@ trait MapperTrait
      * 获取单列值
      * @param array $condition
      * @param string $columns
-     * @return array|null
+     * @return array
      */
     public function pluck(array $condition, string $columns = 'id'): array
     {
@@ -486,7 +486,7 @@ trait MapperTrait
      * @param array|string[] $column
      * @return Builder|Model|null
      */
-    public function one(?Closure $closure = null, array $column = ['*'])
+    public function one(?Closure $closure = null, array $column = ['*']): Model|Builder|null
     {
         return $this->settingClosure($closure)->select($column)->first();
     }

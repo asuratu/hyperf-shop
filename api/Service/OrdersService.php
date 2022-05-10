@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Api\Service;
 
+use Api\Constants\OrderStatus;
 use Api\Mapper\AddressesMapper;
 use Api\Mapper\OrdersMapper;
 use Api\Mapper\ProductsMapper;
@@ -96,6 +97,26 @@ class OrdersService extends AbstractService
         $this->usersMapper->removeCartItem($user, $skuIds);
 
         return $order;
+    }
+
+    /**
+     * 确认收货
+     * @param int $id
+     * @return bool
+     * @throws NotFoundException
+     */
+    public function received(int $id): bool
+    {
+        $order = $this->mapper->myRead($id, user('api')->getId());
+
+        // 判断订单的发货状态是否为已发货
+        if ($order->ship_status !== OrderStatus::SHIP_STATUS_DELIVERED) {
+            throw new BusinessException(StatusCode::ERR_ORDER_SHIP_STATUS);
+        }
+
+        return $this->mapper->update($id, [
+            'ship_status' => OrderStatus::SHIP_STATUS_RECEIVED
+        ]);
     }
 
     /**

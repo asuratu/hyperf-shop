@@ -41,10 +41,10 @@ class OrdersMapper extends AbstractMapper
     /**
      * 排序处理器
      * @param Builder $query
-     * @param array $params
+     * @param array|null $params
      * @return Builder
      */
-    public function handleOrder(Builder $query, array $params): Builder
+    public function handleOrder(Builder $query, ?array &$params = null): Builder
     {
         $query->with(['items.product', 'items.productSku']);
         return $query;

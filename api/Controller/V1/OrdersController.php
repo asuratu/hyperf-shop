@@ -78,4 +78,18 @@ class OrdersController extends MineController
         $order->load(['items.product', 'items.productSku']);
         return $this->success($order);
     }
+
+    /**
+     * 确认收货
+     * @param int $id
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("received/{id}"), Auth('api')]
+    public function received(int $id): ResponseInterface
+    {
+        // 更新发货状态为已收到
+        return $this->service->received($id) ? $this->success() : $this->error();
+    }
 }
