@@ -10,10 +10,13 @@ use Api\Mapper\ProductsMapper;
 use Api\Mapper\UsersMapper;
 use Api\Model\Order;
 use Carbon\Carbon;
+use Hyperf\Di\Exception\NotFoundException;
 use Mine\Abstracts\AbstractService;
 use Mine\Annotation\Transaction;
+use Mine\ApiModel;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
+use Mine\MineModel;
 
 /**
  * 订单服务类
@@ -93,5 +96,17 @@ class OrdersService extends AbstractService
         $this->usersMapper->removeCartItem($user, $skuIds);
 
         return $order;
+    }
+
+    /**
+     * 读取用户相关的一条数据
+     * @param int $id
+     * @return MineModel|ApiModel
+     * @throws NotFoundException
+     */
+    public function myRead(int $id): MineModel|ApiModel
+    {
+        $order = $this->mapper->myRead($id, user('api')->getId());
+        return $order->load(['items.product', 'items.productSku']);
     }
 }

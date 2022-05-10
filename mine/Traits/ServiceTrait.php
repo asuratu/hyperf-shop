@@ -183,6 +183,16 @@ trait ServiceTrait
     }
 
     /**
+     * 读取用户相关的一条数据
+     * @param int $id
+     * @return MineModel|ApiModel|null
+     */
+    public function myRead(int $id): MineModel|ApiModel|null
+    {
+        return $this->mapper->myRead($id, user('api')->getId());
+    }
+
+    /**
      * 读取一条数据
      * @param int $id
      * @return MineModel|ApiModel|null

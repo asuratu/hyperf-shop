@@ -16,6 +16,7 @@ use Closure;
 use Hyperf\Contract\LengthAwarePaginatorInterface;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Model;
+use Hyperf\Di\Exception\NotFoundException;
 use Hyperf\Utils\HigherOrderTapProxy;
 use Mine\Annotation\Transaction;
 use Mine\ApiModel;
@@ -199,7 +200,8 @@ trait MapperTrait
         string $id = 'id',
         string $parentField = 'parent_id',
         string $children = 'children'
-    ): array {
+    ): array
+    {
         $params['_mainAdmin_tree'] = true;
         $params['_mainAdmin_tree_pid'] = $parentField;
         $data = $this->listQuerySetting($params, $isScope)->get();
@@ -239,6 +241,23 @@ trait MapperTrait
     public function read(int $id): MineModel|ApiModel|null
     {
         return ($model = $this->model::findOrFail($id)) ? $model : null;
+    }
+
+    /**
+     * 读取用户相关的一条数据
+     * @param int $id
+     * @param string|int $userId
+     * @param string $foreignKey
+     * @return MineModel|ApiModel
+     * @throws NotFoundException
+     */
+    public function myRead(int $id, string|int $userId, string $foreignKey = 'user_id'): MineModel|ApiModel
+    {
+        $result = $this->model::where($foreignKey, $userId)->findOrFail($id);
+        if (!$result instanceof MineModel && !$result instanceof ApiModel) {
+            throw new NotFoundException();
+        }
+        return $result;
     }
 
     /**

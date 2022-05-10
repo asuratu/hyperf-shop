@@ -61,8 +61,21 @@ class OrdersController extends MineController
     #[GetMapping("index"), Auth('api')]
     public function index(): ResponseInterface
     {
-        $list = $this->service->getMyPageList(user('api')->getId(), $this->request->all(), false);
-//        $list['items'] = OrderResource::collection($list['items']);
-        return $this->success($list);
+        return $this->success($this->service->getMyPageList(user('api')->getId(), $this->request->all(), false));
+    }
+
+    /**
+     * 订单详情
+     * @param int $id
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("read/{id}"), Auth('api')]
+    public function read(int $id): ResponseInterface
+    {
+        $order = $this->service->myRead($id);
+        $order->load(['items.product', 'items.productSku']);
+        return $this->success($order);
     }
 }
