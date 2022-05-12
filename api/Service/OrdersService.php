@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Api\Service;
 
 use Api\Constants\OrderStatus;
+use Api\Event\OrderReviewed;
 use Api\Mapper\AddressesMapper;
+use Api\Mapper\OrderItermsMapper;
 use Api\Mapper\OrdersMapper;
 use Api\Mapper\ProductsMapper;
 use Api\Mapper\UsersMapper;
 use Api\Model\Order;
 use Carbon\Carbon;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\Di\Exception\NotFoundException;
 use Mine\Abstracts\AbstractService;
 use Mine\Annotation\Transaction;
@@ -18,6 +21,7 @@ use Mine\ApiModel;
 use Mine\Constants\StatusCode;
 use Mine\Exception\BusinessException;
 use Mine\MineModel;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * 订单服务类
@@ -28,28 +32,37 @@ class OrdersService extends AbstractService
      * @var OrdersMapper
      */
     public $mapper;
-
+    /**
+     * @var OrderItermsMapper
+     */
+    public OrderItermsMapper $orderItermsMapper;
     /**
      * @var UsersMapper
      */
     public UsersMapper $usersMapper;
-
     /**
      * @var AddressesMapper
      */
     public AddressesMapper $addressesMapper;
-
     /**
      * @var ProductsMapper
      */
     public ProductsMapper $productsMapper;
 
-    public function __construct(OrdersMapper $mapper, UsersMapper $usersMapper, AddressesMapper $addressesMapper, ProductsMapper $productsMapper)
+    /**
+     * 事件调度器
+     * @var EventDispatcherInterface
+     */
+    #[Inject]
+    protected EventDispatcherInterface $evDispatcher;
+
+    public function __construct(OrdersMapper $mapper, UsersMapper $usersMapper, AddressesMapper $addressesMapper, ProductsMapper $productsMapper, OrderItermsMapper $orderItermsMapper)
     {
         $this->mapper = $mapper;
         $this->usersMapper = $usersMapper;
         $this->addressesMapper = $addressesMapper;
         $this->productsMapper = $productsMapper;
+        $this->orderItermsMapper = $orderItermsMapper;
     }
 
     #[Transaction]
@@ -130,4 +143,99 @@ class OrdersService extends AbstractService
         $order = $this->mapper->myRead($id, user('api')->getId());
         return $order->load(['items.product', 'items.productSku']);
     }
+
+    /**
+     * 评价商品
+     * @param int $id
+     * @param array $data
+     * @throws NotFoundException
+     */
+    public function review(int $id, array $data)
+    {
+        // 订单信息
+        $order = $this->mapper->detail($id, user('api')->getId());
+
+        $reviews = $data['reviews'];
+
+        // 判断是否已经支付
+        if (!$order->paid_at) {
+            throw new BusinessException(StatusCode::ERR_UNPAID);
+        }
+
+        // 判断是否已经评价
+        if ($order->reviewed) {
+            throw new BusinessException(StatusCode::ERR_EVALUATED);
+        }
+
+        // 检查参数
+        $orderIds = collect($reviews)->pluck('id');
+
+        // 检查是否是子订单id
+        $count = $this->orderItermsMapper->count(function ($query) use ($id, $orderIds) {
+            return $query->where('order_id', $id)
+                ->whereIn('id', $orderIds);
+        });
+
+        if ($count != count($reviews)) {
+            throw new BusinessException(StatusCode::VALIDATE_FAILED);
+        }
+
+        $this->orderItermsMapper->saveReview($order, $reviews);
+
+        $orderReviewed = new OrderReviewed($order);
+        $this->evDispatcher->dispatch($orderReviewed);
+    }
+
+    /**
+     * 评价详情
+     * @param int $id
+     * @param array $data
+     * @throws NotFoundException
+     */
+    public function reviewDetail(int $id, array $data)
+    {
+        // 订单信息
+        $order = $this->mapper->detail($id, user('api')->getId());
+
+        // 判断是否已经支付
+        if (!$order->paid_at) {
+            throw new BusinessException(StatusCode::ERR_UNPAID);
+        }
+
+        // 判断是否已经评价
+        if ($order->reviewed) {
+            throw new BusinessException(StatusCode::ERR_EVALUATED);
+        }
+    }
+
+    /**
+     * 关闭订单
+     * @param Order $order
+     */
+    #[Transaction]
+    public function closeOrder(Order $order)
+    {
+        // 将订单的 closed 字段标记为 true，即关闭订单
+        $order->update(['closed' => true]);
+        // 循环遍历订单中的商品 SKU，将订单中的数量加回到 SKU 的库存中去
+        foreach ($order->items as $item) {
+            $item->productSku->addStock($item->amount);
+        }
+    }
+
+    /**
+     * 更新评分
+     * @param Order $order
+     */
+    #[Transaction]
+    public function updateRating(Order $order)
+    {
+        // 通过 with 方法提前加载数据，避免 N + 1 性能问题
+        $items = $order->items()->with(['product'])->get();
+
+        foreach ($items as $item) {
+            $this->orderItermsMapper->updateRatingOrderItems($item);
+        }
+    }
+
 }

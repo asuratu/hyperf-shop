@@ -9,6 +9,7 @@ use Api\Model\OrderItem;
 use Api\Model\ProductSku;
 use Api\Model\User;
 use Hyperf\Database\Model\Builder;
+use Hyperf\Di\Exception\NotFoundException;
 use Mine\Abstracts\AbstractMapper;
 
 /**
@@ -110,6 +111,22 @@ class OrdersMapper extends AbstractMapper
         $orderItem->productSku()->associate($sku);
         $orderItem->save();
         return $orderItem;
+    }
+
+    /**
+     * 获取用户订单
+     * @param int $id
+     * @param int|string $userId
+     * @return Order
+     * @throws NotFoundException
+     */
+    public function detail(int $id, int|string $userId): Order
+    {
+        $result = $this->model::where('user_id', $userId)->findOrFail($id);
+        if (!$result instanceof $this->model) {
+            throw new NotFoundException();
+        }
+        return $result;
     }
 
 

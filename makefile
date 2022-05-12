@@ -46,3 +46,4 @@ seeder-run:
 seeder:
 	@$(php) bin/hyperf.php db:seed --path=app/$(m)/Database/Seeders/$(s).php
 
+

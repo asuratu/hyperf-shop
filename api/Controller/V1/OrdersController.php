@@ -6,6 +6,7 @@ namespace Api\Controller\V1;
 
 use Api\Job\DelayCloseOrder;
 use Api\Request\Product\OrderRequest;
+use Api\Request\Product\SendReviewRequest;
 use Api\Service\OrdersService;
 use Dotenv\Exception\ValidationException;
 use Hyperf\Di\Annotation\Inject;
@@ -91,5 +92,47 @@ class OrdersController extends MineController
     {
         // 更新发货状态为已收到
         return $this->service->received($id) ? $this->success() : $this->error();
+    }
+
+    /**
+     * 评价商品
+     * @param int $id
+     * @param SendReviewRequest $request
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[PostMapping("{id}/review"), Auth('api')]
+    public function addReview(int $id, SendReviewRequest $request): ResponseInterface
+    {
+        $this->service->review($id, $request->validated());
+        return $this->success();
+    }
+
+    /**
+     * 协程测试
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("cotest"), Auth('api')]
+    public function cotest(): ResponseInterface
+    {
+        dd(22);
+        return $this->success();
+    }
+
+    /**
+     * 评价商品
+     * @param int $id
+     * @param SendReviewRequest $request
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[GetMapping("{id}/review"), Auth('api')]
+    public function reviewDetail(int $id, SendReviewRequest $request): ResponseInterface
+    {
+        return $this->success($this->service->reviewDetail($id));
     }
 }

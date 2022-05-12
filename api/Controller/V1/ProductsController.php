@@ -123,7 +123,7 @@ class ProductsController extends BaseController
     #[PostMapping("cart"), Auth('api')]
     public function addCart(AddCartRequest $request): ResponseInterface
     {
-        $this->service->addCart($request->validated());
+        $this->service->addCart($request->all());
         return $this->success();
     }
 

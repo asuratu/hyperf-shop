@@ -140,4 +140,14 @@ class StatusCode extends AbstractConstants
      * @Message("发货状态不正确！")
      */
     public const ERR_ORDER_SHIP_STATUS = 3007;
+
+    /**
+     * @Message("该订单未支付，不可评价！")
+     */
+    public const ERR_UNPAID = 3008;
+
+    /**
+     * @Message("该订单已评价，不可重复提交！")
+     */
+    public const ERR_EVALUATED = 3009;
 }
